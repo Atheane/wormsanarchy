@@ -4,7 +4,7 @@
   "description": "multiplayer worms armageddon in JS",
   "main": "server.js",
   "scripts": {
-    "test": "test"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -20,5 +20,11 @@
   "bugs": {
     "url": "https://github.com/Atheane/wormsanarchy/issues"
   },
-  "homepage": "https://github.com/Atheane/wormsanarchy#readme"
+  "homepage": "https://github.com/Atheane/wormsanarchy#readme",
+  "dependencies": {
+    "mocha": "^5.0.4"
+  },
+  "devDependencies": {
+    "pre-commit": "^1.2.2"
+  }
 }
