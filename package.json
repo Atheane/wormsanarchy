@@ -1,0 +1,24 @@
+{
+  "name": "wormsanarchy",
+  "version": "1.0.0",
+  "description": "multiplayer worms armageddon in JS",
+  "main": "server.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Atheane/wormsanarchy.git"
+  },
+  "keywords": [
+    "node",
+    "socket",
+    "react"
+  ],
+  "author": "Atheane",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Atheane/wormsanarchy/issues"
+  },
+  "homepage": "https://github.com/Atheane/wormsanarchy#readme"
+}
