@@ -44,13 +44,16 @@ var imageLoading = function() {
 };
 imageLoading();
 
+/// Background Constructor
+var Background = function() {
+}
+
+Background.prototype.draw = function() {
+  this.context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+  this.context.drawImage(imageContainer.background, 0, 0, imageContainer.background.width, imageContainer.background.height, 0, 0, this.canvasHeight*imageContainer.background.width/imageContainer.background.height, this.canvasHeight);
+}
 
 ///// Drawing canvas functions
-// client side (unknown methods to node, only on canvas HTML element)
-// for background canvas
-
-
-
 // for worm canvas
 var wormDraw = function(canvas, worm, images) {
   canvas.context.clearRect(0, 0, canvas.width, canvas.height);
@@ -73,7 +76,7 @@ var socket = io.connect('http://localhost:3000');
 // var socket = io.connect('http://18.196.138.28:3000');
 console.log('Client connected to socket');
 
-var backgroundCanvasContext = {};
+var game = {};
 
 $(document).ready(function() {
   console.log('DOM ready');
@@ -81,15 +84,17 @@ $(document).ready(function() {
   /// (caveat: different fom canvas width and height properties....)
   /// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
   var width = Math.ceil($(window).width() * 0.7);
-  console.log(width);
   var height = Math.ceil($(window).height() * 0.7);
-  console.log(height);
-  // $('#worm').width(width).height(height);
-  $('#background').width(width).height(height);
   var backgroundCanvas = document.getElementById('background');
   backgroundCanvas.width = width;
   backgroundCanvas.height = height;
-  backgroundCanvasContext = backgroundCanvas.getContext('2d');
+  var backgroundContext = backgroundCanvas.getContext('2d');
+  // Passing context, and canvas dimensions to the constructor Background
+  Background.prototype.context = backgroundContext;
+  Background.prototype.canvasWidth = backgroundCanvas.width;
+  Background.prototype.canvasHeight = backgroundCanvas.height;
+
+  game.background = new Background;
 
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
@@ -208,8 +213,7 @@ var gameLoop = function (timestamp) {
   // }
 
   if (timestamp - start2 >= 500) {
-    // backgroundCanvas.context.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-    backgroundCanvasContext.drawImage(imageContainer.background, imageContainer.background.width, imageContainer.background.height);
+    game.background.draw();
     start2 = timestamp;
   }
 
