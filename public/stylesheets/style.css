@@ -1,0 +1,151 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background-color: #BAC8EE;
+  height: 100vh;
+}
+
+a {
+  color: #00B7FF;
+}
+
+h1#index {
+  position: absolute;
+  top: 5%;
+  left: 37%;
+  text-align: center;
+}
+
+.center {
+  text-align: center;
+}
+
+.game-container {
+ position: absolute;
+ top: 15%;
+ left: 8%;
+ width: 70%;
+ height: 70%;
+/* background-image: url('../images/snow.png');
+ background-size: 110%;
+ background-repeat: no-repeat;*/
+ border: solid white;
+ border-radius: 15px;
+ box-shadow: 1px 1px 1px black;
+}
+
+.form-container {
+  position: absolute;
+  top: 15%;
+  left: 25%;
+  text-align: center;
+  line-height: 1.7em;
+  padding: 2em;
+  width: 50%;
+  height: 70%;
+  margin: auto;
+  border: solid white 2px;
+  background-color: #fff;
+  border-radius: 5px;
+  display: none;
+}
+
+.name-container {
+  position: absolute;
+  top: 10%;
+  right: 50px;
+  width : 17%;
+  height: 80%;
+  border: solid white 2px;
+  background-color: rgba(91, 135, 247, 0.5);
+  border-radius: 5px;
+}
+
+.players {
+  color: white;
+  font-weight: bold;
+}
+
+.players li {
+  list-style: none;
+}
+
+.green_text {
+  color: green;
+  font-weight: lighter;
+}
+
+#white-title-players {
+  padding-top: 1em;
+  text-align: center;
+  color: white;
+  font-size: 18px;
+}
+
+hr {
+  background-color: white;
+}
+
+.avatar-selector input{
+    margin:0;padding:0;
+    -webkit-appearance:none;
+       -moz-appearance:none;
+            appearance:none;
+}
+
+.soldier{background-image:url(../images/worm_soldier.jpeg); width:225px; height:225px;}
+.tarzan{background-image:url(../images/worm_tarzan.jpeg);}
+.dumb{background-image:url(../images/dumb_worm.jpeg);}
+.cool{background-image:url(../images/cool_worm.jpeg);}
+
+.avatar-selector input:active +.avatar-card{opacity: .9;}
+.avatar-selector input:checked +.avatar-card{
+    -webkit-filter: none;
+       -moz-filter: none;
+            filter: none;
+}
+.avatar-card{
+    border: solid grey 1px;
+    border-radius: 50%;
+    cursor:pointer;
+    background-size:100%;
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:100px;height:100px;
+    -webkit-transition: all 100ms ease-in;
+       -moz-transition: all 100ms ease-in;
+            transition: all 100ms ease-in;
+    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
+       -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
+            filter: brightness(1.8) grayscale(1) opacity(.7);
+}
+.avatar-card:hover{
+    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
+       -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
+            filter: brightness(1.2) grayscale(.5) opacity(.9);
+}
+
+#alert {
+  color: red;
+}
+
+canvas {
+  position: absolute;
+}
+
+#background {
+  z-index: -2;
+}
+
+#main {
+  z-index: -1;
+}
+
+#worm {
+  z-index: 0;
+}
+
+
+
+
+
