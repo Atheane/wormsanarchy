@@ -78,23 +78,18 @@ console.log('Client connected to socket');
 $(document).ready(function() {
 
   /// Fetch all active users
-  socket.on('allActivePlayers', function(data) {
-    // console.log(data);
+  socket.on('allActivePlayers', function(players) {
     $('ul.players').html('');
-    data.forEach(function(player) {
-      // console.log(player.pseudo);
+    players.forEach(function(player) {
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
     });
   });
 
-  /// Form
+  /// Form Handler
   $('.form-container').fadeIn(500);
-
-  // var avatar = $('.avatar-selector');
   var player;
   $("#form").submit(function(event){
     event.preventDefault();
-
     var avatar = $('input[name=avatar]:checked').val();
     var pseudo = $('input#pseudo').val();
     // Empty form after click
@@ -102,16 +97,13 @@ $(document).ready(function() {
     // Clean unwanted spaces
     pseudo = pseudo.trim();
     if (pseudo.length === 0) {
-      // console.log('pseudo.length === 0');
       $('h3#alert').html('You must choose a pseudo');
     } else {
       var re = /[a-zA-Z]+\w*/;
       if (!re.exec(pseudo)) {
-        // console.log('!re.exec(pseudo)');
         $('h3#alert').html('Invalid characters in pseudo');
       } else {
         if (pseudo.length < 4) {
-          // console.log('pseudo.length < 4');
           $('h3#alert').html('Pseudo must have at least 4 letters');
         } else {
           // Inscription date
@@ -119,36 +111,35 @@ $(document).ready(function() {
           player = { avatar: avatar, pseudo: pseudo, tsp: tsp };
           // Push new player data to server
           socket.emit('newPlayer', player);
-          console.log('player in client after emit:' + player.pseudo);
-
-          // server says if username valid of not (not already taken)
         }
       }
     }
   });
 
+  // Server says if username valid of not (not already taken)
   socket.on('isValid?', function(valid) {
-    console.log('valid from server is: ' + valid);
-    console.log('player in client:' + player.pseudo);
     if (!valid) {
-      console.log('!valid')
       $('h3#alert').html('Pseudo already taken');
     } else {
-      console.log('player : ' + player.pseudo);
-      console.log('Valid form');
       $('.form-container').hide();
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
       // gameLoop started
-      gameLoop(0);
+      // gameLoop(0);
       console.log('Game Start')
     }
   });
 
+  socket.on('newPlayerToAll', function(data){
+    $('ul.players').append('<li>'+ data.pseudo +'<span class="green_text"> is connected <span> </li>');
+  });
 
-  /// Initialize Canvas CSS width and height attributes
-  /// (caveat: different fom canvas width and height properties....)
-  /// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
+});
+
+
+/// Initialize Canvas CSS width and height attributes
+/// (caveat: different fom canvas width and height properties....)
+/// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
 //   var width = Math.ceil($(window).width() * 0.7);
 //   var height = Math.ceil($(window).height() * 0.7);
 //   $('#worm').width(width).height(height);
@@ -188,10 +179,6 @@ $(document).ready(function() {
 //     }
 //   });
 
-//   // socket.on('newPlayerToAll', function(data){
-//   //   console.log(data);
-//   //   // $('ul.players').append('<li>'+ data.pseudo +'<span class="green_text"> is connected <span> </li>');
-//   // });
 
 // });
 

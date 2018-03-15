@@ -49,42 +49,41 @@ var User = require('./models/user');
 
 io.on('connection', function (socket) {
 
+  var players = [];
   // List of all active players
   User.find({active: true}, function(err, list_users) {
     if (err) {console.log(err.name + ': ' + err.message); }
-    // console.log(list_users);
     socket.emit('allActivePlayers', list_users);
   });
 
-  socket.on('newPlayer', function (data) {
-    console.log(data);
+  socket.on('newPlayer', function (player) {
 
-    User.findOne({pseudo: data.pseudo}, function (err, user_exists) {
+    player.socketId = socket.id
+    players.push(player);
+
+    User.findOne({pseudo: player.pseudo}, function (err, user_exists) {
       if (err) {console.log(err.name + ': ' + err.message); }
       // Successful, so emit
-      // console.log(user_exists);
       var valid = (!user_exists) ? true : false;
       socket.emit('isValid?', valid);
-      console.log('socket.emit');
 
       if (valid) {
-        // console.log('condition is met');
-        // socket.broadcast.emit('newPlayerToAll', data);
+        socket.broadcast.emit('newPlayerToAll', player);
         var user = new User(
-          {
-            pseudo: data.pseudo,
-            avatar: data.avatar,
-            dateInscription: data.tsp,
+          { pseudo: player.pseudo,
+            avatar: player.avatar,
+            dateInscription: player.tsp,
             active: true,
             maxScore: 0
           });
         user.save(function (err) {
           if (err) {console.log(err.name + ': ' + err.message); }
-          console.log('user ' + user.pseudo + ' is saved');
+          console.log('user ' + player.pseudo + ' is saved');
         });
       }
     });
   });
+
   // socket.on('worm', function(data) {
   //   socket.broadcast.emit('wormToAll', data);
   // });
