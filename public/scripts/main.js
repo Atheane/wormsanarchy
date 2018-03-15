@@ -44,19 +44,21 @@ var imageLoading = function() {
 };
 imageLoading();
 
+/// Background Constructor
+var Background = function() {
+}
+
+Background.prototype.draw = function() {
+  this.context.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+  this.context.drawImage(imageContainer.background, 0, 0, imageContainer.background.width, imageContainer.background.height, 0, 0, this.canvasHeight*imageContainer.background.width/imageContainer.background.height, this.canvasHeight);
+}
 
 ///// Drawing canvas functions
-// client side (unknown methods to node, only on canvas HTML element)
-// for background canvas
-var backgroundDraw = function(canvas, background, image) {
-  canvas.context.clearRect(0, 0, canvas.width, canvas.height);
-  canvas.context.drawImage(image, 0, 0, image.width, image.height, background.x, background.y, background.width, background.height);
-}
 // for worm canvas
 var wormDraw = function(canvas, worm, images) {
   canvas.context.clearRect(0, 0, canvas.width, canvas.height);
   if (worm.orientation === 'left') {
-    canvas.context.drawImage(imageL, 0, images.walkLeft.height * worm.rankWalk/15, images.walkLeft.width, images.walkLeft.height/15, worm.x, worm.y, worm.width, worm.height);
+    canvas.context.drawImage(images.left, 0, images.walkLeft.height * worm.rankWalk/15, images.walkLeft.width, images.walkLeft.height/15, worm.x, worm.y, worm.width, worm.height);
   } else if (worm.orientation === 'right') {
     // more efficient to use a separate reversed sprite
     // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image/24260982
@@ -74,8 +76,25 @@ var socket = io.connect('http://localhost:3000');
 // var socket = io.connect('http://18.196.138.28:3000');
 console.log('Client connected to socket');
 
+var game = {};
 
 $(document).ready(function() {
+  console.log('DOM ready');
+  /// Initialize Canvas CSS width and height attributes
+  /// (caveat: different fom canvas width and height properties....)
+  /// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
+  var width = Math.ceil($(window).width() * 0.7);
+  var height = Math.ceil($(window).height() * 0.7);
+  var backgroundCanvas = document.getElementById('background');
+  backgroundCanvas.width = width;
+  backgroundCanvas.height = height;
+  var backgroundContext = backgroundCanvas.getContext('2d');
+  // Passing context, and canvas dimensions to the constructor Background
+  Background.prototype.context = backgroundContext;
+  Background.prototype.canvasWidth = backgroundCanvas.width;
+  Background.prototype.canvasHeight = backgroundCanvas.height;
+
+  game.background = new Background;
 
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
@@ -125,7 +144,7 @@ $(document).ready(function() {
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
       // gameLoop started
-      // gameLoop(0);
+      gameLoop(0);
       console.log('Game Start')
     }
   });
@@ -136,22 +155,10 @@ $(document).ready(function() {
 
 });
 
-
-/// Initialize Canvas CSS width and height attributes
-/// (caveat: different fom canvas width and height properties....)
-/// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-//   var width = Math.ceil($(window).width() * 0.7);
-//   var height = Math.ceil($(window).height() * 0.7);
-//   $('#worm').width(width).height(height);
-//   $('#background').width(width).height(height);
-//   console.log('DOM ready');
-
-//   // get canvas DOM object for background
-//   var backgroundCanvas = {
-//     width: parseFloat(document.getElementById('background').style.width),
-//     height: parseFloat(document.getElementById('background').style.height),
-//     context: document.getElementById('background').getContext('2d')
-//   }
+// var backgroundDraw = function() {
+//   backgroundCanvas.context.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
+//   backgroundCanvas.context.drawImage(imageContainer.background, imageContainer.background.width, imageContainer.background.height);
+// }
 
 //   // get canvas DOM object for worm
 //   var wormCanvas = {
@@ -182,39 +189,42 @@ $(document).ready(function() {
 
 // });
 
-// /// gameLoop
-// // window, canvas => client side
-// // to-do worm server -> client
-// // ajouter allWorms = {}
-// var start1, start2;
+/// gameLoop
+// window, canvas => client side
+// to-do worm server -> client
+// ajouter allWorms = {}
+var start1, start2;
 
-// var gameLoop = function (timestamp) {
-//   if (!start1) { start1 = timestamp; }
-//   if (!start2) { start2 = timestamp; }
+var gameLoop = function (timestamp) {
+  if (!start1) { start1 = timestamp; }
+  if (!start2) { start2 = timestamp; }
 
-//   if (timestamp - start1 >= 50) {
-//     wormDraw(wormCanvas, worm, imageContainer.worm);
-//     // image.worm : doit etre un objet de 4 sprites left / right, jump left, jump right
-//     worm.walk();
-//     // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
-//     worm.jump();
-//     // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
-//     socket.emit('worm', {worm: worm, player: player });
-//     // to-do faire le lien entre l'id du player et le worm coté server
+  // if (timestamp - start1 >= 50) {
+  //   wormDraw(wormCanvas, worm, imageContainer.worm);
+  //   // image.worm : doit etre un objet de 4 sprites left / right, jump left, jump right
+  //   worm.walk();
+  //   // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
+  //   worm.jump();
+  //   // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
+  //   socket.emit('worm', {worm: worm, player: player });
+  //   // to-do faire le lien entre l'id du player et le worm coté server
 
-//     start1 = timestamp;
-//   }
+  //   start1 = timestamp;
+  // }
 
-//   if (timestamp - start2 >= 500) {
-//     backgroundDraw(backgroundCanvas, background, imageContainer.background);
-//     start2 = timestamp;
-//   }
-//   // TODO game server -> client
-//   // if (!game.over) {
-//   //   window.reqAnimFrame(gameLoop);
-//   // }
-//   window.reqAnimFrame(gameLoop);
-// };
+  if (timestamp - start2 >= 500) {
+    game.background.draw();
+    start2 = timestamp;
+  }
+
+
+  // TODO game server -> client
+  // if (!game.over) {
+  //   window.reqAnimFrame(gameLoop);
+  // }
+
+  window.reqAnimFrame(gameLoop);
+};
 
 
 // // A passer du client au server
@@ -249,15 +259,15 @@ $(document).ready(function() {
 // //   // console.log("otherWorms worm.rankJump" + worm.rankJump);
 // // });
 
-// // Polyfill for request animation frame
-// window.reqAnimFrame = (function(){
-//   return  window.requestAnimationFrame   ||
-//     window.webkitRequestAnimationFrame ||
-//     window.mozRequestAnimationFrame    ||
-//     window.oRequestAnimationFrame      ||
-//     window.msRequestAnimationFrame     ||
-//     function(callback, e){
-//       window.setTimeout(callback, 1000 / 60);
-//     };
-// })();
+// Polyfill for request animation frame
+window.reqAnimFrame = (function(){
+  return  window.requestAnimationFrame   ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame    ||
+    window.oRequestAnimationFrame      ||
+    window.msRequestAnimationFrame     ||
+    function(callback, e){
+      window.setTimeout(callback, 1000 / 60);
+    };
+})();
 
