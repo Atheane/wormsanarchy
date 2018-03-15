@@ -3,13 +3,13 @@
 ///// Loading images
 // Only needed when drawing canvas => client side
 var imageContainer = {};
+
 imageContainer.background = new Image;
-imageContainer.worm = {
-    walkLeft: new Image,
-    walkRight: new Image,
-    jumpLeft: new Image,
-    jumpRight: new Image
-}
+imageContainer.walkLeft = new Image;
+imageContainer.walkRight = new Image;
+imageContainer.jumpLeft = new Image;
+imageContainer.jumpRight = new Image;
+
 
 var imageLoading = function() {
   $(imageContainer.background).on('load', function() {
@@ -18,29 +18,29 @@ var imageLoading = function() {
   imageContainer.background.src = 'images/snow.png';
   imageContainer.background.id='background_snow';
 
-  $(imageContainer.worm.walkLeft).on('load', function() {
+  $(imageContainer.walkLeft).on('load', function() {
     console.log('walkLeft Image Loaded');
   });
-  imageContainer.worm.walkLeft.src = 'images/walk_left.png';
-  imageContainer.worm.walkLeft.id='walkLeft';
+  imageContainer.walkLeft.src = 'images/walk_left.png';
+  imageContainer.walkLeft.id='walkLeft';
 
-  $(imageContainer.worm.walkRight).on('load', function() {
+  $(imageContainer.walkRight).on('load', function() {
     console.log('walkRight Image Loaded');
   });
-  imageContainer.worm.walkRight.src = 'images/walk_right.png';
-  imageContainer.worm.walkRight.id='walkRight';
+  imageContainer.walkRight.src = 'images/walk_right.png';
+  imageContainer.walkRight.id='walkRight';
 
-  $(imageContainer.worm.jumpLeft).on('load', function() {
+  $(imageContainer.jumpLeft).on('load', function() {
     console.log('jumpLeft Image Loaded');
   });
-  imageContainer.worm.jumpLeft.src = 'images/jump_left.png';
-  imageContainer.worm.jumpLeft.id='jumpLeft';
+  imageContainer.jumpLeft.src = 'images/jump_left.png';
+  imageContainer.jumpLeft.id='jumpLeft';
 
-  $(imageContainer.worm.jumpRight).on('load', function() {
-    console.log('jump right Image Loaded');
+  $(imageContainer.jumpRight).on('load', function() {
+    console.log('jumpRight Image Loaded');
   });
-  imageContainer.worm.jumpRight.src = 'images/jump_right.png';
-  imageContainer.worm.jumpRight.id='jumpRight';
+  imageContainer.jumpRight.src = 'images/jump_right.png';
+  imageContainer.jumpRight.id='jumpRight';
 };
 imageLoading();
 
@@ -54,23 +54,6 @@ Background.prototype.draw = function() {
 }
 
 ///// Drawing canvas functions
-// for worm canvas
-var wormDraw = function(canvas, worm, images) {
-  canvas.context.clearRect(0, 0, canvas.width, canvas.height);
-  if (worm.orientation === 'left') {
-    canvas.context.drawImage(images.left, 0, images.walkLeft.height * worm.rankWalk/15, images.walkLeft.width, images.walkLeft.height/15, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'right') {
-    // more efficient to use a separate reversed sprite
-    // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image/24260982
-    // option flop with imageMagik
-    canvas.context.drawImage(images.right, 0, images.walkRight.height * worm.rankWalk/15, images.walkRight.width, images.walkRight.height/15, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'up left') {
-    canvas.context.drawImage(images.jumpLeft, 0, images.jumpLeft.height * worm.rankJump/6, images.jumpLeft.width, images.jumpLeft.height/6, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'up right') {
-    canvas.context.drawImage(images.jumpRight, 0, images.jumpRight.height * worm.rankJump/6, images.jumpRight.width, images.jumpRight.height/6, worm.x, worm.y, worm.width, worm.height);
-  }
-};
-
 
 var socket = io.connect('http://localhost:3000');
 // var socket = io.connect('http://18.196.138.28:3000');
@@ -80,21 +63,6 @@ var game = {};
 
 $(document).ready(function() {
   console.log('DOM ready');
-  /// Initialize Canvas CSS width and height attributes
-  /// (caveat: different fom canvas width and height properties....)
-  /// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-  var width = Math.ceil($(window).width() * 0.7);
-  var height = Math.ceil($(window).height() * 0.7);
-  var backgroundCanvas = document.getElementById('background');
-  backgroundCanvas.width = width;
-  backgroundCanvas.height = height;
-  var backgroundContext = backgroundCanvas.getContext('2d');
-  // Passing context, and canvas dimensions to the constructor Background
-  Background.prototype.context = backgroundContext;
-  Background.prototype.canvasWidth = backgroundCanvas.width;
-  Background.prototype.canvasHeight = backgroundCanvas.height;
-
-  game.background = new Background;
 
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
@@ -144,28 +112,68 @@ $(document).ready(function() {
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
       // gameLoop started
+      // we send canvas dimensions to generrate a worm
+      socket.emit('createWorm', {width: parseInt(document.getElementById('background').width), height: parseInt(document.getElementById('background').height) });
+
       gameLoop(0);
       console.log('Game Start')
     }
   });
 
-  socket.on('newPlayerToAll', function(data){
-    $('ul.players').append('<li>'+ data.pseudo +'<span class="green_text"> is connected <span> </li>');
+  socket.on('newPlayerToAll', function(player){
+    $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
   });
 
+  /// Initialize Canvas CSS width and height attributes
+  /// (caveat: different fom canvas width and height properties....)
+  /// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
+  var width = Math.ceil($(window).width() * 0.7);
+  var height = Math.ceil($(window).height() * 0.7);
+
+  /// Elements for Background Constructor
+  var wormCanvas = document.getElementById('worm');
+  wormCanvas.width = width;
+  wormCanvas.height = height;
+
+  socket.on('newWorm', function(worm) {
+    console.log(worm);
+    wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+  });
+
+  /// Elements for Background Constructor
+  var backgroundCanvas = document.getElementById('background');
+  backgroundCanvas.width = width;
+  backgroundCanvas.height = height;
+  var backgroundContext = backgroundCanvas.getContext('2d');
+  // Passing context, and canvas dimensions to the constructor Background
+  Background.prototype.context = backgroundContext;
+  Background.prototype.canvasWidth = backgroundCanvas.width;
+  Background.prototype.canvasHeight = backgroundCanvas.height;
+
+  game.background = new Background;
 });
 
-// var backgroundDraw = function() {
-//   backgroundCanvas.context.clearRect(0, 0, backgroundCanvas.width, backgroundCanvas.height);
-//   backgroundCanvas.context.drawImage(imageContainer.background, imageContainer.background.width, imageContainer.background.height);
-// }
 
-//   // get canvas DOM object for worm
-//   var wormCanvas = {
-//     width: parseFloat(document.getElementById('worm').style.width),
-//     height: parseFloat(document.getElementById('worm').style.height),
-//     context: document.getElementById('worm').getContext('2d')
-//   }
+// for worm canvas
+function wormDraw(canvas, worm, walkLeft, walkRight, jumpLeft, jumpRight) {
+  console.log(canvas, worm, walkLeft, walkRight, jumpLeft, jumpRight);
+  var context =  canvas.getContext('2d');
+  console.log(context);
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (worm.orientation === 'left') {
+    context.drawImage(walkLeft, 0, walkLeft.height * worm.rankWalk/15, walkLeft.width, walkLeft.height/15, worm.x, worm.y, worm.width, worm.height);
+  } else if (worm.orientation === 'right') {
+    // more efficient to use a separate reversed sprite
+    // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image/24260982
+    // option flop with imageMagik
+    context.drawImage(walkRight, 0, walkRight.height * worm.rankWalk/15, walkRight.width, walkRight.height/15, worm.x, worm.y, worm.width, worm.height);
+  } else if (worm.orientation === 'up left') {
+    context.drawImage(jumpLeft, 0, jumpLeft.height * worm.rankJump/6, jumpLeft.width, jumpLeft.height/6, worm.x, worm.y, worm.width, worm.height);
+  } else if (worm.orientation === 'up right') {
+    context.drawImage(jumpRight, 0, jumpRight.height * worm.rankJump/6, jumpRight.width, jumpRight.height/6, worm.x, worm.y, worm.width, worm.height);
+  }
+};
+
 
 //   $(window).keydown(function(event) {
 //     if (event.keyCode === 37) {
