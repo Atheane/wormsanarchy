@@ -57,10 +57,8 @@ io.on('connection', function (socket) {
   });
 
   socket.on('newPlayer', function (player) {
-
     player.socketId = socket.id
     players.push(player);
-
     User.findOne({pseudo: player.pseudo}, function (err, user_exists) {
       if (err) {console.log(err.name + ': ' + err.message); }
       // Successful, so emit
@@ -83,6 +81,7 @@ io.on('connection', function (socket) {
       }
     });
   });
+
 
   // socket.on('worm', function(data) {
   //   socket.broadcast.emit('wormToAll', data);
