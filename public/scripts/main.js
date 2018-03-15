@@ -77,7 +77,7 @@ console.log('Client connected to socket');
 
 $(document).ready(function() {
 
-  /// Fetch all Active users
+  /// Fetch all active users
   socket.on('allActivePlayers', function(data) {
     // console.log(data);
     $('ul.players').html('');
@@ -90,47 +90,58 @@ $(document).ready(function() {
   /// Form
   $('.form-container').fadeIn(500);
 
-  var avatar = $('.avatar-selector');
-
-  $("#button-form").click(function(event){
+  // var avatar = $('.avatar-selector');
+  var player;
+  $("#form").submit(function(event){
     event.preventDefault();
+
     var avatar = $('input[name=avatar]:checked').val();
     var pseudo = $('input#pseudo').val();
-    if (pseudo === '') {
+    // Empty form after click
+    $('input#pseudo').val('');
+    // Clean unwanted spaces
+    pseudo = pseudo.trim();
+    if (pseudo.length === 0) {
+      // console.log('pseudo.length === 0');
       $('h3#alert').html('You must choose a pseudo');
     } else {
-      var tsp = Date.now();
-      var player = { avatar: avatar, pseudo: pseudo, tsp: tsp };
-      // push new player data to server and mongoDB
-      socket.emit('newPlayer', player);
-      $('input#pseudo').val('');
-      // server says if username valid of not (not already taken, not blank)
-      socket.on('isValid?', function(valid) {
-        if (!valid.regexp) {
-          console.log('valid.regexp :' + valid.regexp);
-          $('h3#alert').html('Invalid characters in pseudo');
+      var re = /[a-zA-Z]+\w*/;
+      if (!re.exec(pseudo)) {
+        // console.log('!re.exec(pseudo)');
+        $('h3#alert').html('Invalid characters in pseudo');
+      } else {
+        if (pseudo.length < 4) {
+          // console.log('pseudo.length < 4');
+          $('h3#alert').html('Pseudo must have at least 4 letters');
         } else {
-          if (!valid.length) {
-            console.log('valid.length :' + valid.length);
-            $('h3#alert').html('Pseudo must have at least 4 letters');
-          } else {
-            if (!valid.newPseudo) {
-              console.log('valid.newPseudo :' + valid.newPseudo);
-              $('h3#alert').html('Pseudo already taken');
-            } else {
-              console.log(valid.regexp && valid.length && valid.newPseudo);
-              console.log('player : ' + player.pseudo);
-              console.log('condition is met');
-              $('.form-container').hide();
-              $('.game-container').fadeIn(500);
-              $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
-              // gameLoop started
-              gameLoop(0);
-              console.log('Game Start')
-            }
-          }
+          // Inscription date
+          var tsp = Date.now();
+          player = { avatar: avatar, pseudo: pseudo, tsp: tsp };
+          // Push new player data to server
+          socket.emit('newPlayer', player);
+          console.log('player in client after emit:' + player.pseudo);
+
+          // server says if username valid of not (not already taken)
         }
-      });
+      }
+    }
+  });
+
+  socket.on('isValid?', function(valid) {
+    console.log('valid from server is: ' + valid);
+    console.log('player in client:' + player.pseudo);
+    if (!valid) {
+      console.log('!valid')
+      $('h3#alert').html('Pseudo already taken');
+    } else {
+      console.log('player : ' + player.pseudo);
+      console.log('Valid form');
+      $('.form-container').hide();
+      $('.game-container').fadeIn(500);
+      $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
+      // gameLoop started
+      gameLoop(0);
+      console.log('Game Start')
     }
   });
 
@@ -138,131 +149,128 @@ $(document).ready(function() {
   /// Initialize Canvas CSS width and height attributes
   /// (caveat: different fom canvas width and height properties....)
   /// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-  var width = Math.ceil($(window).width() * 0.7);
-  var height = Math.ceil($(window).height() * 0.7);
-  $('#worm').width(width).height(height);
-  $('#background').width(width).height(height);
-  console.log('DOM ready');
+//   var width = Math.ceil($(window).width() * 0.7);
+//   var height = Math.ceil($(window).height() * 0.7);
+//   $('#worm').width(width).height(height);
+//   $('#background').width(width).height(height);
+//   console.log('DOM ready');
 
-  // get canvas DOM object for background
-  var backgroundCanvas = {
-    width: parseFloat(document.getElementById('background').style.width),
-    height: parseFloat(document.getElementById('background').style.height),
-    context: document.getElementById('background').getContext('2d')
-  }
-
-  // get canvas DOM object for worm
-  var wormCanvas = {
-    width: parseFloat(document.getElementById('worm').style.width),
-    height: parseFloat(document.getElementById('worm').style.height),
-    context: document.getElementById('worm').getContext('2d')
-  }
-
-  $(window).keydown(function(event) {
-    if (event.keyCode === 37) {
-      keyPressed.left = true;
-    } else if (event.keyCode === 39) {
-      keyPressed.right = true;
-    }
-    if (event.keyCode === 38) {
-      keyPressed.up = true;
-    }
-  });
-
-  $(window).keyup(function(event) {
-    if (event.keyCode === 37) {
-      keyPressed.left = false;
-    } else if (event.keyCode === 39) {
-      keyPressed.right = false;
-    }
-  });
-
-
-
-
-  // socket.on('newPlayerToAll', function(data){
-  //   console.log(data);
-  //   // $('ul.players').append('<li>'+ data.pseudo +'<span class="green_text"> is connected <span> </li>');
-  // });
-
-});
-
-/// gameLoop
-// window, canvas => client side
-// to-do worm server -> client
-// ajouter allWorms = {}
-var start1, start2;
-
-var gameLoop = function (timestamp) {
-  if (!start1) { start1 = timestamp; }
-  if (!start2) { start2 = timestamp; }
-
-  if (timestamp - start1 >= 50) {
-    wormDraw(wormCanvas, worm, imageContainer.worm);
-    // image.worm : doit etre un objet de 4 sprites left / right, jump left, jump right
-    worm.walk();
-    // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
-    worm.jump();
-    // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
-    socket.emit('worm', {worm: worm, player: player });
-    // to-do faire le lien entre l'id du player et le worm coté server
-
-    start1 = timestamp;
-  }
-
-  if (timestamp - start2 >= 500) {
-    backgroundDraw(backgroundCanvas, background, imageContainer.background);
-    start2 = timestamp;
-  }
-  // TODO game server -> client
-  // if (!game.over) {
-  //   window.reqAnimFrame(gameLoop);
-  // }
-  window.reqAnimFrame(gameLoop);
-};
-
-
-// A passer du client au server
-//   player
-//   keyPressed
-
-
-// socket.on('wormToAll', function(data) {
-//   if (!otherWorms[data.player.pseudo]) {
-//     console.log('not in object before');
-//     var worm = new Worm;
-//     worm.init(data.worm.x, data.worm.y, 80, 80);
-//     otherWorms[data.player.pseudo] = worm;
-//   } else {
-//     // update worm instance variables
-//     console.log('update wom instances');
-//     var worm = otherWorms[data.player.pseudo];
-//     worm.x = data.worm.x;
-//     worm.y = data.worm.y;
-//     worm.orientation = data.worm.orientation;
-//     worm.rankWalk = data.worm.rankWalk;
-//     worm.rankJump = data.worm.rankJump;
+//   // get canvas DOM object for background
+//   var backgroundCanvas = {
+//     width: parseFloat(document.getElementById('background').style.width),
+//     height: parseFloat(document.getElementById('background').style.height),
+//     context: document.getElementById('background').getContext('2d')
 //   }
-//   worm.draw();
-//   worm.walk();
-//   worm.jump();
-//   // console.log("otherWorms data.player.pseudo" + data.player.pseudo);
-//   // console.log("otherWorms worm.x" + worm.x);
-//   // console.log("otherWorms worm.y" + worm.y);
-//   // console.log("otherWorms worm.orientation" + worm.orientation);
-//   // console.log("otherWorms worm.rankWalk" + worm.rankWalk);
-//   // console.log("otherWorms worm.rankJump" + worm.rankJump);
+
+//   // get canvas DOM object for worm
+//   var wormCanvas = {
+//     width: parseFloat(document.getElementById('worm').style.width),
+//     height: parseFloat(document.getElementById('worm').style.height),
+//     context: document.getElementById('worm').getContext('2d')
+//   }
+
+//   $(window).keydown(function(event) {
+//     if (event.keyCode === 37) {
+//       keyPressed.left = true;
+//     } else if (event.keyCode === 39) {
+//       keyPressed.right = true;
+//     }
+//     if (event.keyCode === 38) {
+//       keyPressed.up = true;
+//     }
+//   });
+
+//   $(window).keyup(function(event) {
+//     if (event.keyCode === 37) {
+//       keyPressed.left = false;
+//     } else if (event.keyCode === 39) {
+//       keyPressed.right = false;
+//     }
+//   });
+
+//   // socket.on('newPlayerToAll', function(data){
+//   //   console.log(data);
+//   //   // $('ul.players').append('<li>'+ data.pseudo +'<span class="green_text"> is connected <span> </li>');
+//   // });
+
 // });
 
-// Polyfill for request animation frame
-window.reqAnimFrame = (function(){
-  return  window.requestAnimationFrame   ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame    ||
-    window.oRequestAnimationFrame      ||
-    window.msRequestAnimationFrame     ||
-    function(callback, e){
-      window.setTimeout(callback, 1000 / 60);
-    };
-})();
+// /// gameLoop
+// // window, canvas => client side
+// // to-do worm server -> client
+// // ajouter allWorms = {}
+// var start1, start2;
+
+// var gameLoop = function (timestamp) {
+//   if (!start1) { start1 = timestamp; }
+//   if (!start2) { start2 = timestamp; }
+
+//   if (timestamp - start1 >= 50) {
+//     wormDraw(wormCanvas, worm, imageContainer.worm);
+//     // image.worm : doit etre un objet de 4 sprites left / right, jump left, jump right
+//     worm.walk();
+//     // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
+//     worm.jump();
+//     // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
+//     socket.emit('worm', {worm: worm, player: player });
+//     // to-do faire le lien entre l'id du player et le worm coté server
+
+//     start1 = timestamp;
+//   }
+
+//   if (timestamp - start2 >= 500) {
+//     backgroundDraw(backgroundCanvas, background, imageContainer.background);
+//     start2 = timestamp;
+//   }
+//   // TODO game server -> client
+//   // if (!game.over) {
+//   //   window.reqAnimFrame(gameLoop);
+//   // }
+//   window.reqAnimFrame(gameLoop);
+// };
+
+
+// // A passer du client au server
+// //   player
+// //   keyPressed
+
+
+// // socket.on('wormToAll', function(data) {
+// //   if (!otherWorms[data.player.pseudo]) {
+// //     console.log('not in object before');
+// //     var worm = new Worm;
+// //     worm.init(data.worm.x, data.worm.y, 80, 80);
+// //     otherWorms[data.player.pseudo] = worm;
+// //   } else {
+// //     // update worm instance variables
+// //     console.log('update wom instances');
+// //     var worm = otherWorms[data.player.pseudo];
+// //     worm.x = data.worm.x;
+// //     worm.y = data.worm.y;
+// //     worm.orientation = data.worm.orientation;
+// //     worm.rankWalk = data.worm.rankWalk;
+// //     worm.rankJump = data.worm.rankJump;
+// //   }
+// //   worm.draw();
+// //   worm.walk();
+// //   worm.jump();
+// //   // console.log("otherWorms data.player.pseudo" + data.player.pseudo);
+// //   // console.log("otherWorms worm.x" + worm.x);
+// //   // console.log("otherWorms worm.y" + worm.y);
+// //   // console.log("otherWorms worm.orientation" + worm.orientation);
+// //   // console.log("otherWorms worm.rankWalk" + worm.rankWalk);
+// //   // console.log("otherWorms worm.rankJump" + worm.rankJump);
+// // });
+
+// // Polyfill for request animation frame
+// window.reqAnimFrame = (function(){
+//   return  window.requestAnimationFrame   ||
+//     window.webkitRequestAnimationFrame ||
+//     window.mozRequestAnimationFrame    ||
+//     window.oRequestAnimationFrame      ||
+//     window.msRequestAnimationFrame     ||
+//     function(callback, e){
+//       window.setTimeout(callback, 1000 / 60);
+//     };
+// })();
 

@@ -47,38 +47,27 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 var io = require('socket.io')(server);
 var User = require('./models/user');
 
-var connexion = 0;
 io.on('connection', function (socket) {
-  connexion += 1;
-  console.log('connexion :' +  connexion);
-  // list of all active players
+
+  // List of all active players
   User.find({active: true}, function(err, list_users) {
     if (err) {console.log(err.name + ': ' + err.message); }
-    console.log(list_users);
+    // console.log(list_users);
     socket.emit('allActivePlayers', list_users);
   });
-  var socketNewPlayer = 0;
+
   socket.on('newPlayer', function (data) {
-    socketNewPlayer += 1;
-    console.log('socketNewPlayer :' + socketNewPlayer);
-    console.log('socket')
-    // data.pseudo = data.pseudo.trim;
     console.log(data);
-    var re = /[a-zA-Z]+\w*/;
-    var valid = {};
-    valid.regexp = (re.exec(data.pseudo)) ? true : false;
-    valid.length = (data.pseudo.length > 3) ? true : false;
+
     User.findOne({pseudo: data.pseudo}, function (err, user_exists) {
       if (err) {console.log(err.name + ': ' + err.message); }
       // Successful, so emit
       // console.log(user_exists);
-      valid.newPseudo = (!user_exists) ? true : false;
+      var valid = (!user_exists) ? true : false;
       socket.emit('isValid?', valid);
-      // console.log('valid.regexp :' + valid.regexp);
-      // console.log('valid.length :' + valid.length);
-      // console.log('valid.newPseudo : ' + valid.newPseudo);
-      // console.log(valid.regexp && valid.length && valid.newPseudo);
-      if (valid.regexp && valid.length && valid.newPseudo) {
+      console.log('socket.emit');
+
+      if (valid) {
         // console.log('condition is met');
         // socket.broadcast.emit('newPlayerToAll', data);
         var user = new User(
