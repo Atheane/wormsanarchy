@@ -1,6 +1,7 @@
 'use strict';
 
 var express = require('express');
+var port = process.env.PORT || '3000';
 var path = require('path');
 var mongoose = require('mongoose');
 var favicon = require('serve-favicon');
@@ -10,6 +11,7 @@ var app = express();
 var server = require('http').Server(app);
 
 var index = require('./routes/index');
+
 
 /// Routing
 app.use('/', index);
@@ -55,19 +57,18 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 
 
-// Handle 404
+/// Handle 404
 app.use(function(req, res) {
   res.status(404);
   res.render('404.pug', {title: '404: Page not found'});
 });
 
-// Handle 500
+/// Handle 500
 app.use(function(error, req, res, next) {
   res.status(500);
   res.render('500.pug', {title:'500: Internal Server Error', error: error});
 });
 
-var port = process.env.PORT || '3000';
 
 app.set('port', port);
 server.listen(port);
