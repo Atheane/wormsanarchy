@@ -12,7 +12,6 @@ var server = require('http').Server(app);
 
 var index = require('./routes/index');
 
-
 /// Routing
 app.use('/', index);
 
@@ -41,7 +40,77 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 
+/// Sockets
 
+// TODO multiplexing
+// https://socket.io/docs/
+var io = require('socket.io')(server);
+var User = require('./models/user');
+
+io.on('connection', function (socket) {
+
+  var players = [];
+  // List of all active players
+  User.find({active: true}, function(err, list_users) {
+    if (err) {console.log(err.name + ': ' + err.message); }
+    socket.emit('allActivePlayers', list_users);
+  });
+
+  socket.on('newPlayer', function (player) {
+
+    player.socketId = socket.id
+    players.push(player);
+
+    User.findOne({pseudo: player.pseudo}, function (err, user_exists) {
+      if (err) {console.log(err.name + ': ' + err.message); }
+      // Successful, so emit
+      var valid = (!user_exists) ? true : false;
+      socket.emit('isValid?', valid);
+
+      if (valid) {
+        socket.broadcast.emit('newPlayerToAll', player);
+        var user = new User(
+          { pseudo: player.pseudo,
+            avatar: player.avatar,
+            dateInscription: player.tsp,
+            active: true,
+            maxScore: 0
+          });
+        user.save(function (err) {
+          if (err) {console.log(err.name + ': ' + err.message); }
+          console.log('user ' + player.pseudo + ' is saved');
+        });
+      }
+    });
+  });
+
+  // socket.on('worm', function(data) {
+  //   socket.broadcast.emit('wormToAll', data);
+  // });
+});
+
+// TODO ajouter un lien entre player et worm dans la bdd
+
+// A mettre du cote server
+//   game.score
+//   worm.active = false <=> game over
+//   players = {}
+//   worms = {} (+ init)
+//   background (+ init background.init(0,0,0,0))
+
+// var worm = new Worm;
+// var wormX = Math.floor(Math.random() * (this.wormCanvas.width + 1));
+// var wormY = Math.ceil(this.wormCanvas.height*3.8/5);
+// worm.init(wormX, wormY, 80, 80);
+
+
+
+// A passer du server au client
+//   keyPressed
+//   worm
+//   background
+//   game(.score)
+//   newPlayer
 
 
 
