@@ -54,6 +54,22 @@ Background.prototype.draw = function() {
 }
 
 ///// Drawing canvas functions
+var wormDraw = function (canvas, worm, walkLeft, walkRight, jumpLeft, jumpRight) {
+  var context =  canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (worm.orientation === 'left') {
+    context.drawImage(walkLeft, 0, walkLeft.height * worm.rankWalk/15, walkLeft.width, walkLeft.height/15, worm.x, worm.y, worm.width, worm.height);
+  } else if (worm.orientation === 'right') {
+    // more efficient to use a separate reversed sprite
+    // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image/24260982
+    // option flop with imageMagik
+    context.drawImage(walkRight, 0, walkRight.height * worm.rankWalk/15, walkRight.width, walkRight.height/15, worm.x, worm.y, worm.width, worm.height);
+  } else if (worm.orientation === 'up left') {
+    context.drawImage(jumpLeft, 0, jumpLeft.height * worm.rankJump/6, jumpLeft.width, jumpLeft.height/6, worm.x, worm.y, worm.width, worm.height);
+  } else if (worm.orientation === 'up right') {
+    context.drawImage(jumpRight, 0, jumpRight.height * worm.rankJump/6, jumpRight.width, jumpRight.height/6, worm.x, worm.y, worm.width, worm.height);
+  }
+};
 
 var socket = io.connect('http://localhost:3000');
 // var socket = io.connect('http://18.196.138.28:3000');
@@ -113,7 +129,7 @@ $(document).ready(function() {
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
       // gameLoop started
       // we send canvas dimensions to generrate a worm
-      socket.emit('createWorm', {width: parseInt(document.getElementById('background').width), height: parseInt(document.getElementById('background').height) });
+      socket.emit('createWorm', {width: parseInt(document.getElementById('background').width), height: parseInt(document.getElementById('background').height), pseudo: player.pseudo });
 
       gameLoop(0);
       console.log('Game Start')
@@ -135,9 +151,20 @@ $(document).ready(function() {
   wormCanvas.width = width;
   wormCanvas.height = height;
 
-  socket.on('newWorm', function(worm) {
+  socket.on('myWorm', function(worm) {
     console.log(worm);
     wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+  });
+
+  socket.on('myWormToAll', function(worm) {
+    var newWormCanvas = document.createElement("canvas");
+    var gameContainer = document.getElementsByClassName('game-container')[0];
+    // gameContainer.appendChild(newWormCanvas);
+    wormCanvas.parentNode.insertBefore(newWormCanvas, wormCanvas.nextSibling);
+    newWormCanvas.setAttribute('id', worm.id);
+    newWormCanvas.width = width;
+    newWormCanvas.height = height;
+    wormDraw(newWormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
   });
 
   /// Elements for Background Constructor
@@ -152,27 +179,6 @@ $(document).ready(function() {
 
   game.background = new Background;
 });
-
-
-// for worm canvas
-function wormDraw(canvas, worm, walkLeft, walkRight, jumpLeft, jumpRight) {
-  console.log(canvas, worm, walkLeft, walkRight, jumpLeft, jumpRight);
-  var context =  canvas.getContext('2d');
-  console.log(context);
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  if (worm.orientation === 'left') {
-    context.drawImage(walkLeft, 0, walkLeft.height * worm.rankWalk/15, walkLeft.width, walkLeft.height/15, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'right') {
-    // more efficient to use a separate reversed sprite
-    // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image/24260982
-    // option flop with imageMagik
-    context.drawImage(walkRight, 0, walkRight.height * worm.rankWalk/15, walkRight.width, walkRight.height/15, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'up left') {
-    context.drawImage(jumpLeft, 0, jumpLeft.height * worm.rankJump/6, jumpLeft.width, jumpLeft.height/6, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'up right') {
-    context.drawImage(jumpRight, 0, jumpRight.height * worm.rankJump/6, jumpRight.width, jumpRight.height/6, worm.x, worm.y, worm.width, worm.height);
-  }
-};
 
 
 //   $(window).keydown(function(event) {

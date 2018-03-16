@@ -2,6 +2,7 @@ var Drawable = require('./drawable');
 
 
 var Worm = function() {
+  this.id = ''
   this.rankWalk = 0;
   this.rankJump = 0;
   this.active = true;

@@ -83,17 +83,19 @@ io.on('connection', function (socket) {
     });
   });
 
-  socket.on('createWorm', function(dim) {
-    console.log(dim);
+  socket.on('createWorm', function(data) {
+    console.log(data);
     var worm = new Worm;
     worms[socket.id] = worm;
-    var wormX = Math.floor(Math.random() * (dim.width + 1));
-    var wormY = Math.ceil(dim.height*3.8/5);
+    worm.id = data.pseudo;
+    console.log('data.pseudo' + data.pseudo);
+    console.log('worm.id' + worm.id);
+    var wormX = Math.floor(Math.random() * (data.width + 1));
+    var wormY = Math.ceil(data.height*3.8/5);
     worm.init(wormX, wormY, 80, 80);
-    console.log(worm.x);
-    console.log(worm.y);
     // worm transmitted to all players
-    io.emit('newWorm', worm);
+    socket.emit('myWorm', worm);
+    socket.broadcast.emit('myWormToAll', worm);
   });
 
 
