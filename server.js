@@ -111,35 +111,10 @@ io.on('connection', function (socket) {
 // A mettre du cote server
 //   game.score
 //   worm.active = false <=> game over
-//   players = {}
-//   worms = {} (+ init)
-//   background (+ init background.init(0,0,0,0))
-
-// var worm = new Worm;
-// var wormX = Math.floor(Math.random() * (this.wormCanvas.width + 1));
-// var wormY = Math.ceil(this.wormCanvas.height*3.8/5);
-// worm.init(wormX, wormY, 80, 80);
-
-
 
 // A passer du server au client
 //   keyPressed
-//   worm
-//   background
 //   game(.score)
-//   newPlayer
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
