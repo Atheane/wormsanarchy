@@ -53,11 +53,14 @@ var worms = {};
 
 io.on('connection', function (socket) {
 
-  // List of all active players
+  // Fetch all active players
   User.find({active: true}, function(err, list_users) {
     if (err) {console.log(err.name + ': ' + err.message); }
     socket.emit('allActivePlayers', list_users);
   });
+
+  // Fetch all active worms
+  socket.emit('allActiveWorms', Object.values(worms));
 
   socket.on('newPlayer', function (player) {
     players[socket.id] = player;
@@ -66,6 +69,7 @@ io.on('connection', function (socket) {
       // Successful, so emit
       var valid = (!user_exists) ? true : false;
       socket.emit('isValid?', valid);
+
       if (valid) {
         socket.broadcast.emit('newPlayerToAll', player);
         var user = new User(
@@ -75,6 +79,7 @@ io.on('connection', function (socket) {
             active: true,
             maxScore: 0
           });
+
         user.save(function (err) {
           if (err) {console.log(err.name + ': ' + err.message); }
           console.log('user ' + player.pseudo + ' is saved');
@@ -84,13 +89,10 @@ io.on('connection', function (socket) {
   });
 
   socket.on('createWorm', function(data) {
-    console.log(data);
     var worm = new Worm;
     worms[socket.id] = worm;
     worm.id = data.pseudo;
-    console.log('data.pseudo' + data.pseudo);
-    console.log('worm.id' + worm.id);
-    var wormX = Math.floor(Math.random() * (data.width + 1));
+    var wormX = Math.floor(Math.random() * (data.width - 50 + 1)) + 50;
     var wormY = Math.ceil(data.height*3.8/5);
     worm.init(wormX, wormY, 80, 80);
     // worm transmitted to all players
