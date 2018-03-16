@@ -46,19 +46,24 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 // https://socket.io/docs/
 var io = require('socket.io')(server);
 var User = require('./models/user');
+var Worm = require('./helpers/worm');
+
+var players = {};
+var worms = {};
 
 io.on('connection', function (socket) {
 
-  var players = [];
-  // List of all active players
+  // Fetch all active players
   User.find({active: true}, function(err, list_users) {
     if (err) {console.log(err.name + ': ' + err.message); }
     socket.emit('allActivePlayers', list_users);
   });
 
+  // Fetch all active worms
+  socket.emit('allActiveWorms', Object.values(worms));
+
   socket.on('newPlayer', function (player) {
-    player.socketId = socket.id
-    players.push(player);
+    players[socket.id] = player;
     User.findOne({pseudo: player.pseudo}, function (err, user_exists) {
       if (err) {console.log(err.name + ': ' + err.message); }
       // Successful, so emit
@@ -74,12 +79,25 @@ io.on('connection', function (socket) {
             active: true,
             maxScore: 0
           });
+
         user.save(function (err) {
           if (err) {console.log(err.name + ': ' + err.message); }
           console.log('user ' + player.pseudo + ' is saved');
         });
       }
     });
+  });
+
+  socket.on('createWorm', function(data) {
+    var worm = new Worm;
+    worms[socket.id] = worm;
+    worm.id = data.pseudo;
+    var wormX = Math.floor(Math.random() * (data.width - 50 + 1)) + 50;
+    var wormY = Math.ceil(data.height*3.8/5);
+    worm.init(wormX, wormY, 80, 80);
+    // worm transmitted to all players
+    socket.emit('myWorm', worm);
+    socket.broadcast.emit('myWormToAll', worm);
   });
 
 
@@ -93,35 +111,10 @@ io.on('connection', function (socket) {
 // A mettre du cote server
 //   game.score
 //   worm.active = false <=> game over
-//   players = {}
-//   worms = {} (+ init)
-//   background (+ init background.init(0,0,0,0))
-
-// var worm = new Worm;
-// var wormX = Math.floor(Math.random() * (this.wormCanvas.width + 1));
-// var wormY = Math.ceil(this.wormCanvas.height*3.8/5);
-// worm.init(wormX, wormY, 80, 80);
-
-
 
 // A passer du server au client
 //   keyPressed
-//   worm
-//   background
 //   game(.score)
-//   newPlayer
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
