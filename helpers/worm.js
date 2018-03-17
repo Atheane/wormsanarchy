@@ -47,7 +47,7 @@ Worm.prototype.jump = function(keyPressed) {
       this.y -= 20;
     }
     else if (this.rankJump === 5) {
-      this.y += 20;
+      // this.y += 20;
       keyPressed.up = false;
     }
   }

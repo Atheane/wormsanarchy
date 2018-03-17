@@ -50,9 +50,9 @@ var Worm = require('./helpers/worm');
 
 var players = {};
 var worms = {};
-var intervalID;
 
 var keyPressed;
+var InitY;
 
 io.on('connection', function (socket) {
 
@@ -95,9 +95,10 @@ io.on('connection', function (socket) {
     var worm = new Worm;
     worms[socket.id] = worm;
     worm.id = data.pseudo;
-    var wormX = Math.floor(Math.random() * (data.width - 50 + 1)) + 50;
-    var wormY = Math.ceil(data.height*3.8/5);
-    worm.init(wormX, wormY, 80, 80);
+    var wormInitX = Math.floor(Math.random() * (data.width - 50 + 1)) + 50;
+    // global, beacause, fixed value across worms
+    InitY = Math.ceil(data.height*3.8/5);
+    worm.init(wormInitX, InitY, 80, 80);
     // worm transmitted to all players
     socket.emit('myWorm', worm);
     socket.broadcast.emit('myWormToAll', worm);
@@ -109,16 +110,18 @@ io.on('connection', function (socket) {
     var worm = worms[socket.id];
     if (worm) {
       worm.walk(keyPressed);
-      worm.jump(keyPressed);
-      socket.emit('moveWorm', worm);
-      socket.broadcast.emit('moveWormToAll', worm);
-      // [0,1,2,3,4].forEach( function() {
-      //   setTimeout(function() {
-      //     worm.jump(keyPressed);
-      //     socket.emit('moveWorm', worm);
-      //     socket.broadcast.emit('moveWormToAll', worm);
-      //   }, 1);
-      // });
+      // socket.emit('walkWorm', worm);
+      // socket.broadcast.emit('walkWormToAll', worm);
+      var x = 0;
+      var intervalID = setInterval(function () {
+        worm.jump(keyPressed);
+        socket.emit('walkWorm', worm);
+        socket.broadcast.emit('walkWormToAll', worm);
+        if (++x === 4) {
+          worm.y = InitY;
+          clearInterval(intervalID);
+        }
+      }, 50);
     }
   });
 
