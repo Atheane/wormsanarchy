@@ -9,6 +9,8 @@ imageContainer.walkLeft = new Image;
 imageContainer.walkRight = new Image;
 imageContainer.jumpLeft = new Image;
 imageContainer.jumpRight = new Image;
+imageContainer.getHollyLeft = new Image;
+imageContainer.getHollyRight = new Image;
 
 
 var imageLoading = function() {
@@ -41,10 +43,23 @@ var imageLoading = function() {
   });
   imageContainer.jumpRight.src = 'images/jump_right.png';
   imageContainer.jumpRight.id='jumpRight';
+
+  $(imageContainer.getHollyLeft).on('load', function() {
+    console.log('getHollyLeft Image Loaded');
+  });
+  imageContainer.getHollyLeft.src = 'images/saintegrenade_get_left.png';
+  imageContainer.getHollyLeft.id = 'getHollyLeft';
+
+  $(imageContainer.getHollyRight).on('load', function() {
+    console.log('getHollyRight Image Loaded');
+  });
+  imageContainer.getHollyRight.src = 'images/saintegrenade_get_right.png';
+  imageContainer.getHollyRight.id='getHollyRight';
+
 };
 imageLoading();
 
-/// Background Constructor
+/// Background
 var Background = function() {
 }
 
@@ -53,21 +68,83 @@ Background.prototype.draw = function() {
   this.context.drawImage(imageContainer.background, 0, 0, imageContainer.background.width, imageContainer.background.height, 0, 0, this.canvasHeight*imageContainer.background.width/imageContainer.background.height, this.canvasHeight);
 }
 
-///// Drawing canvas functions
-var wormDraw = function (canvas, worm, walkLeft, walkRight, jumpLeft, jumpRight) {
+
+///// Worm
+var Worm = function() {
+  this.init = function(props, state) {
+    this.props = props, // Data that do not change. Ex : props = {pseudo: 'robert'}
+    this.state = state // Data that changes.
+    // Ex : state = {x: 158 , y: 3.8/5 * height, orientation: 'left', events: keyPressed, iterations: {walk: 4, jump: 0, getHolly: 0, target: 0, dropHolly: 0}, life: 100, active: true }
+  }
+};
+
+Worm.prototype.walk = function(canvas, images) {
+  var context =  canvas.getContext('2d');
+  if (this.state.events.left) {
+    console.log('walk called');
+    this.state.orientation = 'left';
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+    if (this.state.iterations.walk === 14) {
+      this.state.iterations.walk = 0
+      this.state.x -= 14;
+    } else {
+      this.state.iterations.walk += 1;
+    }
+  } else if (this.state.events.right) {
+    this.state.orientation = 'right';
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
+    if (this.state.iterations.walk  === 14) {
+      this.state.iterations.walk  = 0
+      this.state.x += 14;
+    } else {
+      this.state.iterations.walk += 1;
+    }
+  } else {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+  }
+};
+
+Worm.prototype.jump = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  if (worm.orientation === 'left') {
-    context.drawImage(walkLeft, 0, walkLeft.height * worm.rankWalk/15, walkLeft.width, walkLeft.height/15, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'right') {
-    // more efficient to use a separate reversed sprite
-    // https://stackoverflow.com/questions/8168217/html-canvas-how-to-draw-a-flipped-mirrored-image/24260982
-    // option flop with imageMagik
-    context.drawImage(walkRight, 0, walkRight.height * worm.rankWalk/15, walkRight.width, walkRight.height/15, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'up left') {
-    context.drawImage(jumpLeft, 0, jumpLeft.height * worm.rankJump/6, jumpLeft.width, jumpLeft.height/6, worm.x, worm.y, worm.width, worm.height);
-  } else if (worm.orientation === 'up right') {
-    context.drawImage(jumpRight, 0, jumpRight.height * worm.rankJump/6, jumpRight.width, jumpRight.height/6, worm.x, worm.y, worm.width, worm.height);
+  if (this.state.events.up) {
+    if (this.state.iterations.jump < 5) {
+      this.state.iterations.jump += 1;
+    }
+    if (this.state.iterations.jump === 1) {
+      this.state.y -= 20;
+    }
+    else if (this.state.iterations.jump === 5) {
+      this.state.y += 20;
+      this.state.events.up = false;
+    }
+  }
+  if (!this.state.events.up) {
+    this.state.iterations.jump = 0;
+  }
+  if(this.state.orientation === 'left') {
+    context.drawImage(images.jumpLeft, 0, images.jumpLeft.height * this.state.iterations.jump/6, images.jumpLeft.width, images.jumpLeft.height/6, this.state.x, this.state.y, 60, 60);
+  } else if (this.state.orientation === 'right') {
+    context.drawImage(images.jumpRight, 0, images.jumpRight.height * this.state.iterations.jump/6, images.jumpRight.width, images.jumpRight.height/6, this.state.x, this.state.y, 60, 60);
+  }
+
+};
+
+Worm.prototype.getHolly = function(canvas, images) {
+  var context =  canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (this.state.events.space) {
+    this.state.iterations.getHolly += 1;
+  } else {
+    this.state.iterations.getHolly = 0;
+  }
+  if (this.state.orientation === 'left') {
+    context.drawImage(images.getHollyLeft, 0, images.getHollyLeft.height * this.state.iterations.getHolly/10, images.getHollyLeft.width, images.getHollyLeft.height/10, this.state.x, this.state.y, 60, 60);
+  } else if (this.state.orientation === 'right') {
+    context.drawImage(images.getHollyRight, 0, images.getHollyRight.height * this.state.iterations.getHolly/10, images.getHollyRight.width, images.getHollyRight.height/10, this.state.x, this.state.y, 60, 60);
   }
 };
 
@@ -85,11 +162,27 @@ var socket = io.connect('http://localhost:3000');
 console.log('Client connected to socket');
 
 var game = {};
+game.worms = {};
 
 $(document).ready(function() {
   console.log('DOM ready');
 
-    /// Fetch all active users
+  /// Drawing Background
+  game.width = Math.ceil($(window).width() * 0.7);
+  game.height = Math.ceil($(window).height() * 0.7);
+
+  game.backgroundCanvas = document.getElementById('background');
+  // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
+  game.backgroundCanvas.width = game.width;
+  game.backgroundCanvas.height = game.height;
+  // Passing context, and canvas dimensions to the constructor Background
+  Background.prototype.context = game.backgroundCanvas.getContext('2d');
+  Background.prototype.canvasWidth = game.backgroundCanvas.width;
+  Background.prototype.canvasHeight = game.backgroundCanvas.height;
+
+  game.background = new Background;
+
+  /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
     $('ul.players').html('');
     players.forEach(function(player) {
@@ -136,12 +229,23 @@ $(document).ready(function() {
       $('.form-container').hide();
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
-      // gameLoop started
-      // we send canvas dimensions to generrate a worm
-      socket.emit('createWorm', {width: parseInt(document.getElementById('background').width), height: parseInt(document.getElementById('background').height), pseudo: player.pseudo });
+      gameLoop(0);
 
-      // gameLoop(0);
-      console.log('Game Start')
+      var worm = new Worm;
+      var props = {
+        pseudo: player.pseudo
+      };
+      var state = { x: Math.floor(Math.random() * (game.width - 50 + 1)) + 50,
+        y: Math.ceil(game.height*3.8/5),
+        orientation: 'left',
+        events: keyPressed,
+        iterations: {walk: 0, jump: 0, getHolly: 0, target: 0, dropHolly: 0},
+        life: 100,
+        active: true
+      };
+      worm.init(props, state);
+      socket.emit('createWorm', worm);
+      game.worms[socket.id] = worm;
     }
   });
 
@@ -150,39 +254,21 @@ $(document).ready(function() {
   });
 
 
-  /// Drawing Background
-  var width = Math.ceil($(window).width() * 0.7);
-  var height = Math.ceil($(window).height() * 0.7);
-
-  var backgroundCanvas = document.getElementById('background');
-  // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-  backgroundCanvas.width = width;
-  backgroundCanvas.height = height;
-  var backgroundContext = backgroundCanvas.getContext('2d');
-  // Passing context, and canvas dimensions to the constructor Background
-  Background.prototype.context = backgroundContext;
-  Background.prototype.canvasWidth = backgroundCanvas.width;
-  Background.prototype.canvasHeight = backgroundCanvas.height;
-
-  game.background = new Background;
-  game.background.draw();
-
   /// Drawing Worms
   socket.on('allActiveWorms', function(worms) {
     worms.forEach(function(worm){
-      var newWormCanvas = createCanvas(backgroundCanvas, worm, width, height);
-      wormDraw(newWormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+      var newWormCanvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
+      var newWorm = new Worm;
+      newWorm.init(worm.props, worm.state);
+      worms[socket.id] = newWorm;
     });
   });
 
-  socket.on('myWorm', function(worm) {
-    var wormCanvas = createCanvas(backgroundCanvas, worm, width, height);
-    wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
-  });
-
   socket.on('myWormToAll', function(worm) {
-    var newWormCanvas = createCanvas(backgroundCanvas, worm, width, height);
-    wormDraw(newWormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+    var newWormCanvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
+    var newWorm = new Worm;
+    newWorm.init(worm.props, worm.state);
+    game.worms[socket.id] = newWorm;
   });
 
   $(window).keydown(function(event) {
@@ -193,6 +279,9 @@ $(document).ready(function() {
     }
     if (event.keyCode === 38) {
       keyPressed.up = true;
+    }
+    if (event.keyCode === 32) {
+      keyPressed.space = true;
     }
     socket.emit('pressKey', keyPressed);
   });
@@ -209,15 +298,15 @@ $(document).ready(function() {
     socket.emit('pressKey', keyPressed);
   });
 
-  socket.on('walkWorm', function(worm) {
-    var wormCanvas = document.getElementById(worm.id)
-    wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
-  });
+  // socket.on('moveWorm', function(worm) {
+  //   var wormCanvas = document.getElementById(worm.id)
+  //   wormDraw(wormCanvas, worm, imageContainer);
+  // });
 
-  socket.on('walkWormToAll', function(worm) {
-    var wormCanvas = document.getElementById(worm.id)
-    wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
-  });
+  // socket.on('moveWormToAll', function(worm) {
+  //   var wormCanvas = document.getElementById(worm.id)
+  //   wormDraw(wormCanvas, worm, imageContainer);
+  // });
 
   // socket.on('stopWorm', function(worm) {
   //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
@@ -234,22 +323,34 @@ function createCanvas(siblingCanvas, worm, width, height) {
   var gameContainer = document.getElementsByClassName('game-container')[0];
   // gameContainer.appendChild(newWormCanvas);
   siblingCanvas.parentNode.insertBefore(newSiblingCanvas, siblingCanvas.nextSibling);
-  newSiblingCanvas.setAttribute('id', worm.id);
+  newSiblingCanvas.setAttribute('id', worm.props.pseudo);
   newSiblingCanvas.width = width;
   newSiblingCanvas.height = height;
   return newSiblingCanvas;
 }
 
-// var start1, start2;
-// var gameLoop = function (timestamp) {
-//   if (!start1) { start1 = timestamp; }
-//   if (!start2) { start2 = timestamp; }
-//   if (timestamp - start2 >= 500) {
-//     game.background.draw();
-//     start2 = timestamp;
-//   }
-//   window.reqAnimFrame(gameLoop);
-// };
+game.start1;
+game.start2;
+
+var gameLoop = function (timestamp) {
+  if (!game.start1) { game.start1 = timestamp; }
+  if (!game.start2) { game.start2 = timestamp; }
+  if (timestamp - game.start1 >= 100) {
+    Object.values(game.worms).forEach(function(worm){
+      console.log(worm)
+      if (worm) {
+        var canvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
+        worm.walk(canvas, imageContainer);
+      }
+    });
+    game.start1 = timestamp;
+  }
+  if (timestamp - game.start2 >= 500) {
+    game.background.draw();
+    game.start2 = timestamp;
+  }
+  window.reqAnimFrame(gameLoop);
+};
 
 // Polyfill for request animation frame
 window.reqAnimFrame = (function(){

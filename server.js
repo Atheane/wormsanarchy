@@ -46,7 +46,6 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 // https://socket.io/docs/
 var io = require('socket.io')(server);
 var User = require('./models/user');
-var Worm = require('./helpers/worm');
 
 var players = {};
 var worms = {};
@@ -91,39 +90,31 @@ io.on('connection', function (socket) {
     });
   });
 
-  socket.on('createWorm', function(data) {
-    var worm = new Worm;
+  socket.on('createWorm', function(worm) {
     worms[socket.id] = worm;
-    worm.id = data.pseudo;
-    var wormInitX = Math.floor(Math.random() * (data.width - 50 + 1)) + 50;
-    // global, beacause, fixed value across worms
-    InitY = Math.ceil(data.height*3.8/5);
-    worm.init(wormInitX, InitY, 80, 80);
-    // worm transmitted to all players
-    socket.emit('myWorm', worm);
+    // worm transmitted to all players except client
     socket.broadcast.emit('myWormToAll', worm);
   });
 
 
-  socket.on('pressKey', function(key) {
-    keyPressed = key;
-    var worm = worms[socket.id];
-    if (worm) {
-      worm.walk(keyPressed);
-      // socket.emit('walkWorm', worm);
-      // socket.broadcast.emit('walkWormToAll', worm);
-      var x = 0;
-      var intervalID = setInterval(function () {
-        worm.jump(keyPressed);
-        socket.emit('walkWorm', worm);
-        socket.broadcast.emit('walkWormToAll', worm);
-        if (++x === 4) {
-          worm.y = InitY;
-          clearInterval(intervalID);
-        }
-      }, 50);
-    }
-  });
+  // socket.on('pressKey', function(key) {
+  //   keyPressed = key;
+  //   var worm = worms[socket.id];
+  //   if (worm) {
+  //     worm.walk(keyPressed);
+  //     worm.getHolyGrenade(keyPressed);
+  //     var x = 0;
+  //     var intervalID = setInterval(function () {
+  //       worm.jump(keyPressed);
+  //       socket.emit('moveWorm', worm);
+  //       socket.broadcast.emit('moveWormToAll', worm);
+  //       if (++x === 4) {
+  //         worm.y = InitY;
+  //         clearInterval(intervalID);
+  //       }
+  //     }, 100);
+  //   }
+  // });
 
 });
 
