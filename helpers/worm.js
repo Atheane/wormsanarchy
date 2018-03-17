@@ -14,7 +14,7 @@ Worm.prototype = drawable;
 //// Worm Constructor
 
 
-Worm.prototype.walk = function() {
+Worm.prototype.walk = function(keyPressed) {
   if (keyPressed.left) {
     this.orientation = 'left';
     if (this.rankWalk === 14) {
@@ -33,7 +33,7 @@ Worm.prototype.walk = function() {
     }
   }
 };
-Worm.prototype.jump = function() {
+Worm.prototype.jump = function(keyPressed) {
   if (keyPressed.up) {
     if (this.orientation === 'left') {
       this.orientation = 'up left';
