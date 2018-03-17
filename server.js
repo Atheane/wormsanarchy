@@ -50,6 +50,9 @@ var Worm = require('./helpers/worm');
 
 var players = {};
 var worms = {};
+var intervalID;
+
+var keyPressed;
 
 io.on('connection', function (socket) {
 
@@ -101,9 +104,24 @@ io.on('connection', function (socket) {
   });
 
 
-  // socket.on('worm', function(data) {
-  //   socket.broadcast.emit('wormToAll', data);
-  // });
+  socket.on('pressKey', function(key) {
+    keyPressed = key;
+    var worm = worms[socket.id];
+    if (worm) {
+      worm.walk(keyPressed);
+      worm.jump(keyPressed);
+      socket.emit('moveWorm', worm);
+      socket.broadcast.emit('moveWormToAll', worm);
+      // [0,1,2,3,4].forEach( function() {
+      //   setTimeout(function() {
+      //     worm.jump(keyPressed);
+      //     socket.emit('moveWorm', worm);
+      //     socket.broadcast.emit('moveWormToAll', worm);
+      //   }, 1);
+      // });
+    }
+  });
+
 });
 
 // TODO ajouter un lien entre player et worm dans la bdd

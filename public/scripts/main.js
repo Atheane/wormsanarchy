@@ -71,6 +71,15 @@ var wormDraw = function (canvas, worm, walkLeft, walkRight, jumpLeft, jumpRight)
   }
 };
 
+/// KeyPressed object to stock player inputs
+var keyPressed = {
+  left: false,
+  up: false,
+  right: false,
+  space: false,
+  enter: false
+};
+
 var socket = io.connect('http://localhost:3000');
 // var socket = io.connect('http://18.196.138.28:3000');
 console.log('Client connected to socket');
@@ -80,25 +89,7 @@ var game = {};
 $(document).ready(function() {
   console.log('DOM ready');
 
-  /// Initialize Canvas CSS width and height attributes
-  /// (caveat: different fom canvas width and height properties....)
-  /// https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-  var width = Math.ceil($(window).width() * 0.7);
-  var height = Math.ceil($(window).height() * 0.7);
-
-  /// Elements for Background Constructor
-  var backgroundCanvas = document.getElementById('background');
-  backgroundCanvas.width = width;
-  backgroundCanvas.height = height;
-  var backgroundContext = backgroundCanvas.getContext('2d');
-  // Passing context, and canvas dimensions to the constructor Background
-  Background.prototype.context = backgroundContext;
-  Background.prototype.canvasWidth = backgroundCanvas.width;
-  Background.prototype.canvasHeight = backgroundCanvas.height;
-
-  game.background = new Background;
-
-  /// Fetch all active users
+    /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
     $('ul.players').html('');
     players.forEach(function(player) {
@@ -149,7 +140,7 @@ $(document).ready(function() {
       // we send canvas dimensions to generrate a worm
       socket.emit('createWorm', {width: parseInt(document.getElementById('background').width), height: parseInt(document.getElementById('background').height), pseudo: player.pseudo });
 
-      gameLoop(0);
+      // gameLoop(0);
       console.log('Game Start')
     }
   });
@@ -158,132 +149,107 @@ $(document).ready(function() {
     $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
   });
 
-  /// Elements for Background Constructor
-  var wormCanvas = document.getElementById('worm');
-  wormCanvas.width = width;
-  wormCanvas.height = height;
 
+  /// Drawing Background
+  var width = Math.ceil($(window).width() * 0.7);
+  var height = Math.ceil($(window).height() * 0.7);
+
+  var backgroundCanvas = document.getElementById('background');
+  // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
+  backgroundCanvas.width = width;
+  backgroundCanvas.height = height;
+  var backgroundContext = backgroundCanvas.getContext('2d');
+  // Passing context, and canvas dimensions to the constructor Background
+  Background.prototype.context = backgroundContext;
+  Background.prototype.canvasWidth = backgroundCanvas.width;
+  Background.prototype.canvasHeight = backgroundCanvas.height;
+
+  game.background = new Background;
+  game.background.draw();
+
+  /// Drawing Worms
   socket.on('allActiveWorms', function(worms) {
     worms.forEach(function(worm){
-      var newWormCanvas = createCanvas(wormCanvas, worm, width, height);
+      var newWormCanvas = createCanvas(backgroundCanvas, worm, width, height);
       wormDraw(newWormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
     });
   });
 
   socket.on('myWorm', function(worm) {
+    var wormCanvas = createCanvas(backgroundCanvas, worm, width, height);
     wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
   });
 
   socket.on('myWormToAll', function(worm) {
-    var newWormCanvas = createCanvas(wormCanvas, worm, width, height);
+    var newWormCanvas = createCanvas(backgroundCanvas, worm, width, height);
     wormDraw(newWormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
   });
 
+  $(window).keydown(function(event) {
+    if (event.keyCode === 37) {
+      keyPressed.left = true;
+    } else if (event.keyCode === 39) {
+      keyPressed.right = true;
+    }
+    if (event.keyCode === 38) {
+      keyPressed.up = true;
+    }
+    socket.emit('pressKey', keyPressed);
+  });
+
+  $(window).keyup(function(event) {
+    if (event.keyCode === 37) {
+      keyPressed.left = false;
+    } else if (event.keyCode === 39) {
+      keyPressed.right = false;
+    }
+    socket.emit('pressKey', keyPressed);
+  });
+
+  socket.on('moveWorm', function(worm) {
+    var wormCanvas = document.getElementById(worm.id)
+    wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+  });
+
+  socket.on('moveWormToAll', function(worm) {
+    var wormCanvas = document.getElementById(worm.id)
+    wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+  });
+
+  // socket.on('stopWorm', function(worm) {
+  //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+  // });
+
+  // socket.on('stopWormToAll', function(worm) {
+  //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
+  // });
+
 });
 
-function createCanvas(wormCanvas, worm, width, height) {
-  var newWormCanvas = document.createElement("canvas");
+function createCanvas(siblingCanvas, worm, width, height) {
+  var newSiblingCanvas = document.createElement("canvas");
   var gameContainer = document.getElementsByClassName('game-container')[0];
   // gameContainer.appendChild(newWormCanvas);
-  wormCanvas.parentNode.insertBefore(newWormCanvas, wormCanvas.nextSibling);
-  newWormCanvas.setAttribute('id', worm.id);
-  newWormCanvas.width = width;
-  newWormCanvas.height = height;
-  return newWormCanvas;
+  siblingCanvas.parentNode.insertBefore(newSiblingCanvas, siblingCanvas.nextSibling);
+  newSiblingCanvas.setAttribute('id', worm.id);
+  newSiblingCanvas.width = width;
+  newSiblingCanvas.height = height;
+  return newSiblingCanvas;
 }
 
 
-//   $(window).keydown(function(event) {
-//     if (event.keyCode === 37) {
-//       keyPressed.left = true;
-//     } else if (event.keyCode === 39) {
-//       keyPressed.right = true;
-//     }
-//     if (event.keyCode === 38) {
-//       keyPressed.up = true;
-//     }
-//   });
-
-//   $(window).keyup(function(event) {
-//     if (event.keyCode === 37) {
-//       keyPressed.left = false;
-//     } else if (event.keyCode === 39) {
-//       keyPressed.right = false;
-//     }
-//   });
 
 
-// });
-
-/// gameLoop
-// window, canvas => client side
-// to-do worm server -> client
-// ajouter allWorms = {}
-var start1, start2;
-
-var gameLoop = function (timestamp) {
-  if (!start1) { start1 = timestamp; }
-  if (!start2) { start2 = timestamp; }
-
-  // if (timestamp - start1 >= 50) {
-  //   wormDraw(wormCanvas, worm, imageContainer.worm);
-  //   // image.worm : doit etre un objet de 4 sprites left / right, jump left, jump right
-  //   worm.walk();
-  //   // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
-  //   worm.jump();
-  //   // méthode définie dans la fonction constructeur worm (côté server), dans helpers / worm.js
-  //   socket.emit('worm', {worm: worm, player: player });
-  //   // to-do faire le lien entre l'id du player et le worm coté server
-
-  //   start1 = timestamp;
-  // }
-
-  if (timestamp - start2 >= 500) {
-    game.background.draw();
-    start2 = timestamp;
-  }
-
-
-  // TODO game server -> client
-  // if (!game.over) {
-  //   window.reqAnimFrame(gameLoop);
-  // }
-
-  window.reqAnimFrame(gameLoop);
-};
-
-
-// // A passer du client au server
-// //   player
-// //   keyPressed
-
-
-// // socket.on('wormToAll', function(data) {
-// //   if (!otherWorms[data.player.pseudo]) {
-// //     console.log('not in object before');
-// //     var worm = new Worm;
-// //     worm.init(data.worm.x, data.worm.y, 80, 80);
-// //     otherWorms[data.player.pseudo] = worm;
-// //   } else {
-// //     // update worm instance variables
-// //     console.log('update wom instances');
-// //     var worm = otherWorms[data.player.pseudo];
-// //     worm.x = data.worm.x;
-// //     worm.y = data.worm.y;
-// //     worm.orientation = data.worm.orientation;
-// //     worm.rankWalk = data.worm.rankWalk;
-// //     worm.rankJump = data.worm.rankJump;
-// //   }
-// //   worm.draw();
-// //   worm.walk();
-// //   worm.jump();
-// //   // console.log("otherWorms data.player.pseudo" + data.player.pseudo);
-// //   // console.log("otherWorms worm.x" + worm.x);
-// //   // console.log("otherWorms worm.y" + worm.y);
-// //   // console.log("otherWorms worm.orientation" + worm.orientation);
-// //   // console.log("otherWorms worm.rankWalk" + worm.rankWalk);
-// //   // console.log("otherWorms worm.rankJump" + worm.rankJump);
-// // });
+// var start1, start2;
+// var gameLoop = function (timestamp) {
+//   if (!start1) { start1 = timestamp; }
+//   if (!start2) { start2 = timestamp; }
+//   if (timestamp - start2 >= 500) {
+//     game.background.draw();
+//     start2 = timestamp;
+//   }
+//   window.reqAnimFrame(gameLoop);
+// };
 
 // Polyfill for request animation frame
 window.reqAnimFrame = (function(){
