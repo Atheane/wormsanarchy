@@ -203,15 +203,18 @@ $(document).ready(function() {
     } else if (event.keyCode === 39) {
       keyPressed.right = false;
     }
+    if (event.keyCode === 38) {
+      keyPressed.up = false;
+    }
     socket.emit('pressKey', keyPressed);
   });
 
-  socket.on('moveWorm', function(worm) {
+  socket.on('walkWorm', function(worm) {
     var wormCanvas = document.getElementById(worm.id)
     wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
   });
 
-  socket.on('moveWormToAll', function(worm) {
+  socket.on('walkWormToAll', function(worm) {
     var wormCanvas = document.getElementById(worm.id)
     wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
   });
@@ -236,9 +239,6 @@ function createCanvas(siblingCanvas, worm, width, height) {
   newSiblingCanvas.height = height;
   return newSiblingCanvas;
 }
-
-
-
 
 // var start1, start2;
 // var gameLoop = function (timestamp) {
