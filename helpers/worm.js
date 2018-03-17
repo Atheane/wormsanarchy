@@ -1,6 +1,7 @@
 var Drawable = require('./drawable');
 
 
+//// Worm Constructor
 var Worm = function() {
   this.id = ''
   this.rankWalk = 0;
@@ -11,8 +12,6 @@ var Worm = function() {
 
 var drawable = new Drawable();
 Worm.prototype = drawable;
-//// Worm Constructor
-
 
 Worm.prototype.walk = function(keyPressed) {
   if (keyPressed.left) {
@@ -33,6 +32,7 @@ Worm.prototype.walk = function(keyPressed) {
     }
   }
 };
+
 Worm.prototype.jump = function(keyPressed) {
   if (keyPressed.up) {
     if (this.orientation === 'left') {
@@ -60,5 +60,12 @@ Worm.prototype.jump = function(keyPressed) {
     }
   }
 };
+
+Worm.prototype.getHolyGrenade = function(keyPressed) {
+  if (keyPressed.space) {
+
+  }
+};
+
 
 module.exports = Worm;
