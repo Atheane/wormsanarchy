@@ -229,7 +229,6 @@ $(document).ready(function() {
       $('.form-container').hide();
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
-      gameLoop(0);
 
       var worm = new Worm;
       var props = {
@@ -245,7 +244,13 @@ $(document).ready(function() {
       };
       worm.init(props, state);
       socket.emit('createWorm', worm);
+      var canvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
+      worm.canvas = canvas;
       game.worms[socket.id] = worm;
+
+      gameLoop(0);
+      console.log('game start')
+
     }
   });
 
@@ -260,7 +265,8 @@ $(document).ready(function() {
       var newWormCanvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
       var newWorm = new Worm;
       newWorm.init(worm.props, worm.state);
-      worms[socket.id] = newWorm;
+      newWorm.canvas = newWormCanvas;
+      game.worms[socket.id] = newWorm;
     });
   });
 
@@ -268,6 +274,7 @@ $(document).ready(function() {
     var newWormCanvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
     var newWorm = new Worm;
     newWorm.init(worm.props, worm.state);
+    newWorm.canvas = newWormCanvas;
     game.worms[socket.id] = newWorm;
   });
 
@@ -337,10 +344,8 @@ var gameLoop = function (timestamp) {
   if (!game.start2) { game.start2 = timestamp; }
   if (timestamp - game.start1 >= 100) {
     Object.values(game.worms).forEach(function(worm){
-      console.log(worm)
       if (worm) {
-        var canvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
-        worm.walk(canvas, imageContainer);
+        worm.walk(worm.canvas, imageContainer);
       }
     });
     game.start1 = timestamp;
