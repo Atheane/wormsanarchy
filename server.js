@@ -91,37 +91,22 @@ io.on('connection', function (socket) {
   });
 
   socket.on('createWorm', function(worm) {
-    if (worm) {
-      // console.log(worm);
-      worms[socket.id] = worm;
-      // console.log(worms[socket.id]);
-      // worm transmitted to all players except client
-      socket.broadcast.emit('myWormToAll', worm);
-    }
+    // console.log(worm);
+    worms[socket.id] = worm;
+    // console.log(worms[socket.id]);
+    // worm transmitted to all players except client
+    socket.broadcast.emit('myWormToAll', worm);
   });
 
 
   socket.on('updateWorm', function(worm) {
     console.log(worm);
-    if (worm) {
-      worms[socket.id] = worm;
-      // worm updated to all players except client
-      socket.broadcast.emit('updateWormToAll', worm);
-    }
+    worms[socket.id] = worm;
+    // worm updated to all players except client
+    socket.broadcast.emit('updateWormToAll', worm);
   });
 
 });
-
-// TODO ajouter un lien entre player et worm dans la bdd
-
-// A mettre du cote server
-//   game.score
-//   worm.active = false <=> game over
-
-// A passer du server au client
-//   keyPressed
-//   game(.score)
-
 
 
 /// Handle 404

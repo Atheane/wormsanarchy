@@ -273,24 +273,15 @@ $(document).ready(function() {
 
   /// Drawing Worms
   socket.on('allActiveWorms', function(worms) {
-    // debugger;
-    if (worm.length > 0) {
-      worms.forEach(function(worm){
-        var newWorm = new Worm;
-        newWorm.init(worm.props, worm.state);
-        newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
-        game.worms[worm.props.pseudo] = newWorm;
+    if (worms.length > 0) {
+      worms.forEach(function(wormJson){
+        createWormObject(wormJson);
       });
     }
-    // debugger;
   });
 
-  socket.on('myWormToAll', function(worm) {
-    // debugger;
-    var newWorm = new Worm;
-    newWorm.init(worm.props, worm.state);
-    newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
-    game.worms[worm.props.pseudo] = newWorm;
+  socket.on('myWormToAll', function(wormJson) {
+    createWormObject(wormJson);
   });
 
 function createWormObject(wormJson) {
@@ -335,11 +326,7 @@ function createWormObject(wormJson) {
   });
 
   socket.on('updateWormToAll', function(wormJson) {
-    console.log(worm)
-    // debugger;
-    if (worm) {
-      updateWormObject(wormJson);
-    }
+    updateWormObject(wormJson);
   });
 
 function updateWormObject(wormJson) {
