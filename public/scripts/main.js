@@ -259,7 +259,7 @@ $(document).ready(function() {
 
       worm.createCanvas(game.backgroundCanvas, game.width, game.height);
       game.worms[worm.props.pseudo] = worm;
-
+      game.worm = worm;
       gameLoop(0);
       console.log('game start')
 
@@ -293,38 +293,63 @@ $(document).ready(function() {
     game.worms[worm.props.pseudo] = newWorm;
   });
 
+function createWormObject(wormJson) {
+  var newWorm = new Worm;
+  newWorm.init(wormJson.props, wormJson.state);
+  newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
+  game.worms[wormJson.props.pseudo] = newWorm;
+};
+
+
   $(window).keydown(function(event) {
     if (event.keyCode === 37) {
       keyPressed.left = true;
+      // debugger;
+      socket.emit('updateWorm', game.worm);
     } else if (event.keyCode === 39) {
       keyPressed.right = true;
+      socket.emit('updateWorm', game.worm);
     }
     if (event.keyCode === 38) {
       keyPressed.up = true;
+      socket.emit('updateWorm', game.worm);
     }
     if (event.keyCode === 32) {
       keyPressed.space = true;
+      socket.emit('updateWorm', game.worm);
     }
-    socket.emit('updateWorm', game.worm);
   });
 
   $(window).keyup(function(event) {
     if (event.keyCode === 37) {
       keyPressed.left = false;
+      socket.emit('updateWorm', game.worm);
     } else if (event.keyCode === 39) {
       keyPressed.right = false;
+      socket.emit('updateWorm', game.worm);
     }
     if (event.keyCode === 38) {
       keyPressed.up = false;
+      socket.emit('updateWorm', game.worm);
     }
-    socket.emit('updateWorm', game.worm);
   });
 
-  socket.on('updateWormToAll', function(worm) {
+  socket.on('updateWormToAll', function(wormJson) {
+    console.log(worm)
+    // debugger;
     if (worm) {
-      game.worms[worm.props.pseudo] = worm;
+      updateWormObject(wormJson);
     }
   });
+
+function updateWormObject(wormJson) {
+  var worm = new Worm;
+  worm.init(wormJson.props, wormJson.state);
+  var canvas = document.getElementById(wormJson.props.pseudo);
+  worm.canvas = canvas;
+  game.worms[wormJson.props.pseudo] = worm;
+};
+
 
   // socket.on('moveWormToAll', function(worm) {
   //   var wormCanvas = document.getElementById(worm.id)

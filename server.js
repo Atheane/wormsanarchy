@@ -102,6 +102,7 @@ io.on('connection', function (socket) {
 
 
   socket.on('updateWorm', function(worm) {
+    console.log(worm);
     if (worm) {
       worms[socket.id] = worm;
       // worm updated to all players except client
