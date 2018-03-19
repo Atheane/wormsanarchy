@@ -54,15 +54,13 @@ var keyPressed;
 var InitY;
 
 io.on('connection', function (socket) {
+  // Fetch all active worms
 
   // Fetch all active players
   User.find({active: true}, function(err, list_users) {
     if (err) {console.log(err.name + ': ' + err.message); }
     socket.emit('allActivePlayers', list_users);
   });
-
-  // Fetch all active worms
-  socket.emit('allActiveWorms', Object.values(worms));
 
   socket.on('newPlayer', function (player) {
     players[socket.id] = player;
@@ -74,6 +72,7 @@ io.on('connection', function (socket) {
 
       if (valid) {
         socket.broadcast.emit('newPlayerToAll', player);
+        socket.emit('allActiveWorms', Object.values(worms));
         var user = new User(
           { pseudo: player.pseudo,
             avatar: player.avatar,
@@ -86,35 +85,29 @@ io.on('connection', function (socket) {
           if (err) {console.log(err.name + ': ' + err.message); }
           console.log('user ' + player.pseudo + ' is saved');
         });
+
       }
     });
   });
 
   socket.on('createWorm', function(worm) {
-    worms[socket.id] = worm;
-    // worm transmitted to all players except client
-    socket.broadcast.emit('myWormToAll', worm);
+    if (worm) {
+      // console.log(worm);
+      worms[socket.id] = worm;
+      // console.log(worms[socket.id]);
+      // worm transmitted to all players except client
+      socket.broadcast.emit('myWormToAll', worm);
+    }
   });
 
 
-  // socket.on('pressKey', function(key) {
-  //   keyPressed = key;
-  //   var worm = worms[socket.id];
-  //   if (worm) {
-  //     worm.walk(keyPressed);
-  //     worm.getHolyGrenade(keyPressed);
-  //     var x = 0;
-  //     var intervalID = setInterval(function () {
-  //       worm.jump(keyPressed);
-  //       socket.emit('moveWorm', worm);
-  //       socket.broadcast.emit('moveWormToAll', worm);
-  //       if (++x === 4) {
-  //         worm.y = InitY;
-  //         clearInterval(intervalID);
-  //       }
-  //     }, 100);
-  //   }
-  // });
+  socket.on('updateWorm', function(worm) {
+    if (worm) {
+      worms[socket.id] = worm;
+      // worm updated to all players except client
+      socket.broadcast.emit('updateWormToAll', worm);
+    }
+  });
 
 });
 

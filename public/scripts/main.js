@@ -78,10 +78,20 @@ var Worm = function() {
   }
 };
 
+Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
+  var newSiblingCanvas = document.createElement("canvas");
+  var gameContainer = document.getElementsByClassName('game-container')[0];
+  // gameContainer.appendChild(newWormCanvas);
+  siblingCanvas.parentNode.insertBefore(newSiblingCanvas, siblingCanvas.nextSibling);
+  newSiblingCanvas.setAttribute('id', this.props.pseudo);
+  newSiblingCanvas.width = width;
+  newSiblingCanvas.height = height;
+  this.canvas = newSiblingCanvas;
+}
+
 Worm.prototype.walk = function(canvas, images) {
   var context =  canvas.getContext('2d');
   if (this.state.events.left) {
-    console.log('walk called');
     this.state.orientation = 'left';
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
@@ -163,6 +173,7 @@ console.log('Client connected to socket');
 
 var game = {};
 game.worms = {};
+game.players = {};
 
 $(document).ready(function() {
   console.log('DOM ready');
@@ -187,12 +198,12 @@ $(document).ready(function() {
     $('ul.players').html('');
     players.forEach(function(player) {
       $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
+      game.players[player.pseudo] = player;
     });
   });
 
   /// Form Handler
   $('.form-container').fadeIn(500);
-  var player;
   $("#form").submit(function(event){
     event.preventDefault();
     var avatar = $('input[name=avatar]:checked').val();
@@ -213,9 +224,9 @@ $(document).ready(function() {
         } else {
           // Inscription date
           var tsp = Date.now();
-          player = { avatar: avatar, pseudo: pseudo, tsp: tsp };
+          game.player = { avatar: avatar, pseudo: pseudo, tsp: tsp };
           // Push new player data to server
-          socket.emit('newPlayer', player);
+          socket.emit('newPlayer', game.player);
         }
       }
     }
@@ -228,11 +239,11 @@ $(document).ready(function() {
     } else {
       $('.form-container').hide();
       $('.game-container').fadeIn(500);
-      $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>');
+      $('ul.players').append('<li>'+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>');
 
       var worm = new Worm;
       var props = {
-        pseudo: player.pseudo
+        pseudo: game.player.pseudo
       };
       var state = { x: Math.floor(Math.random() * (game.width - 50 + 1)) + 50,
         y: Math.ceil(game.height*3.8/5),
@@ -244,9 +255,10 @@ $(document).ready(function() {
       };
       worm.init(props, state);
       socket.emit('createWorm', worm);
-      var canvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
-      worm.canvas = canvas;
-      game.worms[socket.id] = worm;
+      // debugger;
+
+      worm.createCanvas(game.backgroundCanvas, game.width, game.height);
+      game.worms[worm.props.pseudo] = worm;
 
       gameLoop(0);
       console.log('game start')
@@ -261,21 +273,24 @@ $(document).ready(function() {
 
   /// Drawing Worms
   socket.on('allActiveWorms', function(worms) {
-    worms.forEach(function(worm){
-      var newWormCanvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
-      var newWorm = new Worm;
-      newWorm.init(worm.props, worm.state);
-      newWorm.canvas = newWormCanvas;
-      game.worms[socket.id] = newWorm;
-    });
+    // debugger;
+    if (worm.length > 0) {
+      worms.forEach(function(worm){
+        var newWorm = new Worm;
+        newWorm.init(worm.props, worm.state);
+        newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
+        game.worms[worm.props.pseudo] = newWorm;
+      });
+    }
+    // debugger;
   });
 
   socket.on('myWormToAll', function(worm) {
-    var newWormCanvas = createCanvas(game.backgroundCanvas, worm, game.width, game.height);
+    // debugger;
     var newWorm = new Worm;
     newWorm.init(worm.props, worm.state);
-    newWorm.canvas = newWormCanvas;
-    game.worms[socket.id] = newWorm;
+    newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
+    game.worms[worm.props.pseudo] = newWorm;
   });
 
   $(window).keydown(function(event) {
@@ -290,7 +305,7 @@ $(document).ready(function() {
     if (event.keyCode === 32) {
       keyPressed.space = true;
     }
-    socket.emit('pressKey', keyPressed);
+    socket.emit('updateWorm', game.worm);
   });
 
   $(window).keyup(function(event) {
@@ -302,13 +317,14 @@ $(document).ready(function() {
     if (event.keyCode === 38) {
       keyPressed.up = false;
     }
-    socket.emit('pressKey', keyPressed);
+    socket.emit('updateWorm', game.worm);
   });
 
-  // socket.on('moveWorm', function(worm) {
-  //   var wormCanvas = document.getElementById(worm.id)
-  //   wormDraw(wormCanvas, worm, imageContainer);
-  // });
+  socket.on('updateWormToAll', function(worm) {
+    if (worm) {
+      game.worms[worm.props.pseudo] = worm;
+    }
+  });
 
   // socket.on('moveWormToAll', function(worm) {
   //   var wormCanvas = document.getElementById(worm.id)
@@ -325,24 +341,14 @@ $(document).ready(function() {
 
 });
 
-function createCanvas(siblingCanvas, worm, width, height) {
-  var newSiblingCanvas = document.createElement("canvas");
-  var gameContainer = document.getElementsByClassName('game-container')[0];
-  // gameContainer.appendChild(newWormCanvas);
-  siblingCanvas.parentNode.insertBefore(newSiblingCanvas, siblingCanvas.nextSibling);
-  newSiblingCanvas.setAttribute('id', worm.props.pseudo);
-  newSiblingCanvas.width = width;
-  newSiblingCanvas.height = height;
-  return newSiblingCanvas;
-}
-
 game.start1;
 game.start2;
 
 var gameLoop = function (timestamp) {
   if (!game.start1) { game.start1 = timestamp; }
   if (!game.start2) { game.start2 = timestamp; }
-  if (timestamp - game.start1 >= 100) {
+  if (timestamp - game.start1 >= 50) {
+    // debugger;
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         worm.walk(worm.canvas, imageContainer);
