@@ -337,12 +337,6 @@ function updateWormObject(wormJson) {
   game.worms[wormJson.props.pseudo] = worm;
 };
 
-
-  // socket.on('moveWormToAll', function(worm) {
-  //   var wormCanvas = document.getElementById(worm.id)
-  //   wormDraw(wormCanvas, worm, imageContainer);
-  // });
-
   // socket.on('stopWorm', function(worm) {
   //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
   // });
@@ -364,6 +358,7 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         worm.walk(worm.canvas, imageContainer);
+        // worm.jump(worm.canvas, imageContainer);
       }
     });
     game.start1 = timestamp;
