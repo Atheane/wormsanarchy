@@ -46,7 +46,6 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 // https://socket.io/docs/
 var io = require('socket.io')(server);
 var User = require('./models/user');
-var Worm = require('./helpers/worm');
 
 var players = {};
 var worms = {};
@@ -55,15 +54,13 @@ var keyPressed;
 var InitY;
 
 io.on('connection', function (socket) {
+  // Fetch all active worms
 
   // Fetch all active players
   User.find({active: true}, function(err, list_users) {
     if (err) {console.log(err.name + ': ' + err.message); }
     socket.emit('allActivePlayers', list_users);
   });
-
-  // Fetch all active worms
-  socket.emit('allActiveWorms', Object.values(worms));
 
   socket.on('newPlayer', function (player) {
     players[socket.id] = player;
@@ -75,6 +72,7 @@ io.on('connection', function (socket) {
 
       if (valid) {
         socket.broadcast.emit('newPlayerToAll', player);
+        socket.emit('allActiveWorms', Object.values(worms));
         var user = new User(
           { pseudo: player.pseudo,
             avatar: player.avatar,
@@ -87,56 +85,28 @@ io.on('connection', function (socket) {
           if (err) {console.log(err.name + ': ' + err.message); }
           console.log('user ' + player.pseudo + ' is saved');
         });
+
       }
     });
   });
 
-  socket.on('createWorm', function(data) {
-    var worm = new Worm;
+  socket.on('createWorm', function(worm) {
+    // console.log(worm);
     worms[socket.id] = worm;
-    worm.id = data.pseudo;
-    var wormInitX = Math.floor(Math.random() * (data.width - 50 + 1)) + 50;
-    // global, beacause, fixed value across worms
-    InitY = Math.ceil(data.height*3.8/5);
-    worm.init(wormInitX, InitY, 80, 80);
-    // worm transmitted to all players
-    socket.emit('myWorm', worm);
+    // console.log(worms[socket.id]);
+    // worm transmitted to all players except client
     socket.broadcast.emit('myWormToAll', worm);
   });
 
 
-  socket.on('pressKey', function(key) {
-    keyPressed = key;
-    var worm = worms[socket.id];
-    if (worm) {
-      worm.walk(keyPressed);
-      // socket.emit('walkWorm', worm);
-      // socket.broadcast.emit('walkWormToAll', worm);
-      var x = 0;
-      var intervalID = setInterval(function () {
-        worm.jump(keyPressed);
-        socket.emit('walkWorm', worm);
-        socket.broadcast.emit('walkWormToAll', worm);
-        if (++x === 4) {
-          worm.y = InitY;
-          clearInterval(intervalID);
-        }
-      }, 50);
-    }
+  socket.on('updateWorm', function(worm) {
+    console.log(worm);
+    worms[socket.id] = worm;
+    // worm updated to all players except client
+    socket.broadcast.emit('updateWormToAll', worm);
   });
 
 });
-
-// TODO ajouter un lien entre player et worm dans la bdd
-
-// A mettre du cote server
-//   game.score
-//   worm.active = false <=> game over
-
-// A passer du server au client
-//   keyPressed
-//   game(.score)
-
 
 
 /// Handle 404
