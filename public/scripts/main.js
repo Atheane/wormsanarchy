@@ -112,8 +112,13 @@ Worm.prototype.walk = function(canvas, images) {
       this.state.iterations.walk += 1;
     }
   } else {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+    if (this.state.orientation === 'left') {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+    } else {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
+    }
   }
 };
 
@@ -175,23 +180,11 @@ var game = {};
 game.worms = {};
 game.players = {};
 
+
 $(document).ready(function() {
   console.log('DOM ready');
 
-  /// Drawing Background
-  game.width = Math.ceil($(window).width() * 0.7);
-  game.height = Math.ceil($(window).height() * 0.7);
 
-  game.backgroundCanvas = document.getElementById('background');
-  // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-  game.backgroundCanvas.width = game.width;
-  game.backgroundCanvas.height = game.height;
-  // Passing context, and canvas dimensions to the constructor Background
-  Background.prototype.context = game.backgroundCanvas.getContext('2d');
-  Background.prototype.canvasWidth = game.backgroundCanvas.width;
-  Background.prototype.canvasHeight = game.backgroundCanvas.height;
-
-  game.background = new Background;
 
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
@@ -240,13 +233,15 @@ $(document).ready(function() {
       $('.form-container').hide();
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>');
+      /// Drawing Background
+      setBackground();
 
       var worm = new Worm;
       var props = {
         pseudo: game.player.pseudo
       };
       var state = { x: Math.floor(Math.random() * (game.width - 50 + 1)) + 50,
-        y: Math.ceil(game.height*3.8/5),
+        y: Math.ceil(game.height*3.9/5),
         orientation: 'left',
         events: keyPressed,
         iterations: {walk: 0, jump: 0, getHolly: 0, target: 0, dropHolly: 0},
@@ -260,9 +255,21 @@ $(document).ready(function() {
       worm.createCanvas(game.backgroundCanvas, game.width, game.height);
       game.worms[worm.props.pseudo] = worm;
       game.worm = worm;
+
       gameLoop(0);
       console.log('game start')
 
+      var width = game.width;
+      var height = game.height;
+
+      $(window).resize(function() {
+        setBackground();
+        console.log("just after setBackground", game.height);
+        game.worm.state.x *= game.width / width;
+        game.worm.state.y *= game.height / height;
+        var width = game.width;
+        var height = game.height;
+      });
     }
   });
 
@@ -284,12 +291,12 @@ $(document).ready(function() {
     createWormObject(wormJson);
   });
 
-function createWormObject(wormJson) {
-  var newWorm = new Worm;
-  newWorm.init(wormJson.props, wormJson.state);
-  newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
-  game.worms[wormJson.props.pseudo] = newWorm;
-};
+  function createWormObject(wormJson) {
+    var newWorm = new Worm;
+    newWorm.init(wormJson.props, wormJson.state);
+    newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
+    game.worms[wormJson.props.pseudo] = newWorm;
+  };
 
 
   $(window).keydown(function(event) {
@@ -381,4 +388,22 @@ window.reqAnimFrame = (function(){
       window.setTimeout(callback, 1000 / 60);
     };
 })();
+
+function setBackground() {
+  game.width = Math.ceil($(window).width() * 0.7);
+  game.height = Math.ceil($(window).height() * 0.7);
+
+  game.backgroundCanvas = document.getElementById('background');
+  // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
+  game.backgroundCanvas.width = game.width;
+  game.backgroundCanvas.height = game.height;
+  // Passing context, and canvas dimensions to the constructor Background
+  Background.prototype.context = game.backgroundCanvas.getContext('2d');
+  Background.prototype.canvasWidth = game.backgroundCanvas.width;
+  Background.prototype.canvasHeight = game.backgroundCanvas.height;
+
+  game.background = new Background;
+
+};
+
 
