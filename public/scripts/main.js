@@ -91,34 +91,21 @@ Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
 
 Worm.prototype.walk = function(canvas, images) {
   var context =  canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (this.state.orientation === 'left') {
+    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+  } else  {
+    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
+  }
   if (this.state.events.left) {
     this.state.orientation = 'left';
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
-    if (this.state.iterations.walk === 14) {
-      this.state.iterations.walk = 0
-      this.state.x -= 14;
-    } else {
-      this.state.iterations.walk += 1;
-    }
+    if (this.state.iterations.walk === 14) {this.state.x -= 14;}
   } else if (this.state.events.right) {
     this.state.orientation = 'right';
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
-    if (this.state.iterations.walk  === 14) {
-      this.state.iterations.walk  = 0
-      this.state.x += 14;
-    } else {
-      this.state.iterations.walk += 1;
-    }
-  } else {
-    if (this.state.orientation === 'left') {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
-    } else {
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
-    }
+    if (this.state.iterations.walk  === 14) {this.state.x += 14;}
+  }
+  if (this.state.events.left || this.state.events.right) {
+    (this.state.iterations.walk === 14) ? this.state.iterations.walk = 0 : this.state.iterations.walk += 1 ;
   }
 };
 
@@ -126,26 +113,18 @@ Worm.prototype.jump = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
   if (this.state.events.up) {
-    if (this.state.iterations.jump < 5) {
+    if ( this.state.iterations.jump < 5) {
       this.state.iterations.jump += 1;
-    }
-    if (this.state.iterations.jump === 1) {
-      this.state.y -= 20;
-    }
-    else if (this.state.iterations.jump === 5) {
-      this.state.y += 20;
+    } else {
       this.state.events.up = false;
+      this.state.iterations.jump = 0;
     }
-  }
-  if (!this.state.events.up) {
-    this.state.iterations.jump = 0;
   }
   if(this.state.orientation === 'left') {
     context.drawImage(images.jumpLeft, 0, images.jumpLeft.height * this.state.iterations.jump/6, images.jumpLeft.width, images.jumpLeft.height/6, this.state.x, this.state.y, 60, 60);
-  } else if (this.state.orientation === 'right') {
+  } else {
     context.drawImage(images.jumpRight, 0, images.jumpRight.height * this.state.iterations.jump/6, images.jumpRight.width, images.jumpRight.height/6, this.state.x, this.state.y, 60, 60);
   }
-
 };
 
 Worm.prototype.getHolly = function(canvas, images) {
@@ -365,7 +344,9 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         worm.walk(worm.canvas, imageContainer);
-        // worm.jump(worm.canvas, imageContainer);
+        if (worm.state.events.up) {
+          worm.jump(worm.canvas, imageContainer);
+        }
       }
     });
     game.start1 = timestamp;
