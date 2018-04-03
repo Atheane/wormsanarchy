@@ -259,14 +259,14 @@ $(document).ready(function() {
       gameLoop(0);
       console.log('game start')
 
-      var width = game.width;
-      var height = game.height;
-
       $(window).resize(function() {
+        var width = game.width;
+        var height = game.height;
         setBackground();
         console.log("just after setBackground", game.height);
-        game.worm.state.x *= game.width / width;
-        game.worm.state.y *= game.height / height;
+        // debugger;
+        game.worm.state.x = Math.ceil(game.worm.state.x * game.width / width);
+        game.worm.state.y = Math.ceil(game.worm.state.y * game.height / height);
         var width = game.width;
         var height = game.height;
       });
@@ -390,8 +390,10 @@ window.reqAnimFrame = (function(){
 })();
 
 function setBackground() {
+  // debugger;
   game.width = Math.ceil($(window).width() * 0.7);
   game.height = Math.ceil($(window).height() * 0.7);
+  // debugger;
 
   game.backgroundCanvas = document.getElementById('background');
   // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
