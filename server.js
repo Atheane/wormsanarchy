@@ -91,16 +91,13 @@ io.on('connection', function (socket) {
   });
 
   socket.on('createWorm', function(worm) {
-    // console.log(worm);
     worms[socket.id] = worm;
-    // console.log(worms[socket.id]);
     // worm transmitted to all players except client
     socket.broadcast.emit('myWormToAll', worm);
   });
 
 
   socket.on('updateWorm', function(worm) {
-    console.log(worm);
     worms[socket.id] = worm;
     // worm updated to all players except client
     socket.broadcast.emit('updateWormToAll', worm);
