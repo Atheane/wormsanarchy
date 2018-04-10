@@ -130,11 +130,7 @@ Worm.prototype.jump = function(canvas, images) {
 Worm.prototype.getHolly = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  if (this.state.events.space) {
-    this.state.iterations.getHolly += 1;
-  } else {
-    this.state.iterations.getHolly = 0;
-  }
+  (this.state.iterations.getHolly < 9) ? this.state.iterations.getHolly += 1 : this.state.iterations.getHolly === 8;
   if (this.state.orientation === 'left') {
     context.drawImage(images.getHollyLeft, 0, images.getHollyLeft.height * this.state.iterations.getHolly/10, images.getHollyLeft.width, images.getHollyLeft.height/10, this.state.x, this.state.y, 60, 60);
   } else if (this.state.orientation === 'right') {
@@ -223,7 +219,7 @@ $(document).ready(function() {
         y: Math.ceil(game.height*3.9/5),
         orientation: 'left',
         events: keyPressed,
-        iterations: {walk: 0, jump: 0, getHolly: 0, target: 0, dropHolly: 0},
+        iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0, dropHolly: 0},
         life: 100,
         active: true
       };
@@ -310,6 +306,10 @@ $(document).ready(function() {
       keyPressed.up = false;
       socket.emit('updateWorm', game.worm);
     }
+    if (event.keyCode === 32) {
+      keyPressed.space = false;
+      socket.emit('updateWorm', game.worm);
+    }
   });
 
   socket.on('updateWormToAll', function(wormJson) {
@@ -347,6 +347,11 @@ var gameLoop = function (timestamp) {
         worm.walk(worm.canvas, imageContainer);
         if (worm.state.events.up) {
           worm.jump(worm.canvas, imageContainer);
+        }
+        if (worm.state.events.space) {
+          worm.getHolly(worm.canvas, imageContainer);
+        } else {
+          worm.state.iterations.getHolly = 0;
         }
       }
     });
