@@ -91,29 +91,21 @@ Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
 
 Worm.prototype.walk = function(canvas, images) {
   var context =  canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  if (this.state.orientation === 'left') {
+    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+  } else  {
+    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
+  }
   if (this.state.events.left) {
     this.state.orientation = 'left';
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
-    if (this.state.iterations.walk === 14) {
-      this.state.iterations.walk = 0
-      this.state.x -= 14;
-    } else {
-      this.state.iterations.walk += 1;
-    }
+    if (this.state.iterations.walk === 14) {this.state.x -= 14;}
   } else if (this.state.events.right) {
     this.state.orientation = 'right';
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
-    if (this.state.iterations.walk  === 14) {
-      this.state.iterations.walk  = 0
-      this.state.x += 14;
-    } else {
-      this.state.iterations.walk += 1;
-    }
-  } else {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+    if (this.state.iterations.walk  === 14) {this.state.x += 14;}
+  }
+  if (this.state.events.left || this.state.events.right) {
+    (this.state.iterations.walk === 14) ? this.state.iterations.walk = 0 : this.state.iterations.walk += 1 ;
   }
 };
 
@@ -121,26 +113,18 @@ Worm.prototype.jump = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
   if (this.state.events.up) {
-    if (this.state.iterations.jump < 5) {
+    if ( this.state.iterations.jump < 5) {
       this.state.iterations.jump += 1;
-    }
-    if (this.state.iterations.jump === 1) {
-      this.state.y -= 20;
-    }
-    else if (this.state.iterations.jump === 5) {
-      this.state.y += 20;
+    } else {
       this.state.events.up = false;
+      this.state.iterations.jump = 0;
     }
-  }
-  if (!this.state.events.up) {
-    this.state.iterations.jump = 0;
   }
   if(this.state.orientation === 'left') {
     context.drawImage(images.jumpLeft, 0, images.jumpLeft.height * this.state.iterations.jump/6, images.jumpLeft.width, images.jumpLeft.height/6, this.state.x, this.state.y, 60, 60);
-  } else if (this.state.orientation === 'right') {
+  } else {
     context.drawImage(images.jumpRight, 0, images.jumpRight.height * this.state.iterations.jump/6, images.jumpRight.width, images.jumpRight.height/6, this.state.x, this.state.y, 60, 60);
   }
-
 };
 
 Worm.prototype.getHolly = function(canvas, images) {
@@ -175,23 +159,11 @@ var game = {};
 game.worms = {};
 game.players = {};
 
+
 $(document).ready(function() {
   console.log('DOM ready');
 
-  /// Drawing Background
-  game.width = Math.ceil($(window).width() * 0.7);
-  game.height = Math.ceil($(window).height() * 0.7);
 
-  game.backgroundCanvas = document.getElementById('background');
-  // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
-  game.backgroundCanvas.width = game.width;
-  game.backgroundCanvas.height = game.height;
-  // Passing context, and canvas dimensions to the constructor Background
-  Background.prototype.context = game.backgroundCanvas.getContext('2d');
-  Background.prototype.canvasWidth = game.backgroundCanvas.width;
-  Background.prototype.canvasHeight = game.backgroundCanvas.height;
-
-  game.background = new Background;
 
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
@@ -240,13 +212,15 @@ $(document).ready(function() {
       $('.form-container').hide();
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>');
+      /// Drawing Background
+      setBackground();
 
       var worm = new Worm;
       var props = {
         pseudo: game.player.pseudo
       };
       var state = { x: Math.floor(Math.random() * (game.width - 50 + 1)) + 50,
-        y: Math.ceil(game.height*3.8/5),
+        y: Math.ceil(game.height*3.9/5),
         orientation: 'left',
         events: keyPressed,
         iterations: {walk: 0, jump: 0, getHolly: 0, target: 0, dropHolly: 0},
@@ -255,14 +229,26 @@ $(document).ready(function() {
       };
       worm.init(props, state);
       socket.emit('createWorm', worm);
-      // debugger;
 
       worm.createCanvas(game.backgroundCanvas, game.width, game.height);
+
       game.worms[worm.props.pseudo] = worm;
       game.worm = worm;
+
       gameLoop(0);
       console.log('game start')
 
+      $(window).resize(function() {
+        var width = game.width;
+        var height = game.height;
+        setBackground();
+        console.log("just after setBackground", game.height);
+        // debugger;
+        game.worm.state.x = Math.ceil(game.worm.state.x * game.width / width);
+        game.worm.state.y = Math.ceil(game.worm.state.y * game.height / height);
+        var width = game.width;
+        var height = game.height;
+      });
     }
   });
 
@@ -284,12 +270,13 @@ $(document).ready(function() {
     createWormObject(wormJson);
   });
 
-function createWormObject(wormJson) {
-  var newWorm = new Worm;
-  newWorm.init(wormJson.props, wormJson.state);
-  newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
-  game.worms[wormJson.props.pseudo] = newWorm;
-};
+  function createWormObject(wormJson) {
+    var newWorm = new Worm;
+    newWorm.init(wormJson.props, wormJson.state);
+    // debugger;
+    newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
+    game.worms[wormJson.props.pseudo] = newWorm;
+  };
 
 
   $(window).keydown(function(event) {
@@ -358,7 +345,9 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         worm.walk(worm.canvas, imageContainer);
-        // worm.jump(worm.canvas, imageContainer);
+        if (worm.state.events.up) {
+          worm.jump(worm.canvas, imageContainer);
+        }
       }
     });
     game.start1 = timestamp;
@@ -381,4 +370,24 @@ window.reqAnimFrame = (function(){
       window.setTimeout(callback, 1000 / 60);
     };
 })();
+
+function setBackground() {
+  // debugger;
+  game.width = Math.ceil($(window).width() * 0.7);
+  game.height = Math.ceil($(window).height() * 0.7);
+  // debugger;
+
+  game.backgroundCanvas = document.getElementById('background');
+  // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
+  game.backgroundCanvas.width = game.width;
+  game.backgroundCanvas.height = game.height;
+  // Passing context, and canvas dimensions to the constructor Background
+  Background.prototype.context = game.backgroundCanvas.getContext('2d');
+  Background.prototype.canvasWidth = game.backgroundCanvas.width;
+  Background.prototype.canvasHeight = game.backgroundCanvas.height;
+
+  game.background = new Background;
+
+};
+
 
