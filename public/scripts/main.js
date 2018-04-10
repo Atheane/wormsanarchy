@@ -229,9 +229,9 @@ $(document).ready(function() {
       };
       worm.init(props, state);
       socket.emit('createWorm', worm);
-      // debugger;
 
       worm.createCanvas(game.backgroundCanvas, game.width, game.height);
+
       game.worms[worm.props.pseudo] = worm;
       game.worm = worm;
 
@@ -273,6 +273,7 @@ $(document).ready(function() {
   function createWormObject(wormJson) {
     var newWorm = new Worm;
     newWorm.init(wormJson.props, wormJson.state);
+    // debugger;
     newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
     game.worms[wormJson.props.pseudo] = newWorm;
   };
