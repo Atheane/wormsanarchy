@@ -219,7 +219,7 @@ $(document).ready(function() {
       var props = {
         pseudo: game.player.pseudo
       };
-      var state = { x: Math.floor(Math.random() * (game.width - 50 + 1)) + 50,
+      var state = { x: Math.floor(Math.random() * (game.width - 150 + 1)) + 100,
         y: Math.ceil(game.height*3.9/5),
         orientation: 'left',
         events: keyPressed,
