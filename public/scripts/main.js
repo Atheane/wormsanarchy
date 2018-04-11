@@ -159,8 +159,6 @@ game.players = {};
 $(document).ready(function() {
   console.log('DOM ready');
 
-
-
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
     $('ul.players').html('');
