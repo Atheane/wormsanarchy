@@ -11,7 +11,8 @@ imageContainer.jumpLeft = new Image;
 imageContainer.jumpRight = new Image;
 imageContainer.getHollyLeft = new Image;
 imageContainer.getHollyRight = new Image;
-
+imageContainer.targetHollyLeft = new Image;
+imageContainer.targetHollyRight = new Image;
 
 var imageLoading = function() {
   $(imageContainer.background).on('load', function() {
@@ -55,6 +56,19 @@ var imageLoading = function() {
   });
   imageContainer.getHollyRight.src = 'images/saintegrenade_get_right.png';
   imageContainer.getHollyRight.id='getHollyRight';
+
+  $(imageContainer.targetHollyLeft).on('load', function() {
+    console.log('targetHollyLeft Image Loaded');
+  });
+  imageContainer.targetHollyLeft.src = 'images/saintegrenade_target_left.png';
+  imageContainer.targetHollyLeft.id = 'targetHollyLeft';
+
+  $(imageContainer.targetHollyRight).on('load', function() {
+    console.log('targetHollyRight Image Loaded');
+  });
+  imageContainer.targetHollyRight.src = 'images/saintegrenade_target_right.png';
+  imageContainer.targetHollyRight.id='targetHollyRight';
+
 
 };
 imageLoading();
@@ -138,13 +152,32 @@ Worm.prototype.getHolly = function(canvas, images) {
   }
 };
 
+Worm.prototype.targetHolly = function(canvas, images) {
+  var angle = 0;
+  var context =  canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (keyPressed.space) {
+    angle = getAngle(this.state.x, this.state.y, keyPressed.mousePosition.x,  keyPressed.mousePosition.y  );
+    console.log(toDegrees(angle));
+  }
+
+  (this.state.iterations.targetHolly < 31) ? this.state.iterations.targetHolly += 1 : this.state.iterations.targetHolly === 30;
+  if (this.state.orientation === 'left') {
+    context.drawImage(images.targetHollyLeft, 0, images.targetHollyLeft.height * this.state.iterations.targetgetHolly/32, images.targetHollyLeft.width, images.targetHollyLeft.height/32, this.state.x, this.state.y, 60, 60);
+  } else if (this.state.orientation === 'right') {
+    context.drawImage(images.targetHollyRight, 0, images.targetHollyRight.height * this.state.iterations.targetHolly/32, images.targetHollyRight.width, images.targetHollyRight.height/32, this.state.x, this.state.y, 60, 60);
+  }
+};
+
+
 /// KeyPressed object to stock player inputs
 var keyPressed = {
   left: false,
   up: false,
   right: false,
   space: false,
-  enter: false
+  mousePosition: {x: undefined, y: undefined}
 };
 
 var socket = io.connect('http://localhost:3000');
@@ -310,6 +343,17 @@ $(document).ready(function() {
     }
   });
 
+  $(window).mousemove(function(event) {
+    if (keyPressed.space) {
+      // changing ref : worm x and worm y are in canvas ref, not event.client x, event.clientY
+      var ndcX = event.clientX;
+      var ndcY = event.clientY;
+      keyPressed.mousePosition.x = ndcX;
+      keyPressed.mousePosition.y = ndcY;
+      console.log(keyPressed.mousePosition.x, keyPressed.mousePosition.y );
+    }
+  });
+
   socket.on('updateWormToAll', function(wormJson) {
     updateWormObject(wormJson);
   });
@@ -348,9 +392,14 @@ var gameLoop = function (timestamp) {
         }
         if (worm.state.events.space) {
           worm.getHolly(worm.canvas, imageContainer);
+          worm.targetHolly(worm.canvas, imageContainer);
         } else {
           worm.state.iterations.getHolly = 0;
         }
+        // debugger
+        // if (worm.state.events.mousePosition.x && worm.state.events.mousePosition.y) {
+        //   worm.targetHolly(worm.canvas, imageContainer);
+        // }
       }
     });
     game.start1 = timestamp;
@@ -392,5 +441,17 @@ function setBackground() {
   game.background = new Background;
 
 };
+
+function getAngle( x1, y1, x2, y2 ) {
+
+  var dx = x1 - x2, dy = y1 - y2;
+
+  return Math.atan2(dy,dx);
+};
+
+
+function toDegrees (angle) {
+  return angle * (180 / Math.PI);
+}
 
 
