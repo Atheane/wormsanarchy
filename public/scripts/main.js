@@ -159,7 +159,12 @@ Worm.prototype.targetHolly = function(canvas, images) {
 
   if (keyPressed.space) {
     angle = getAngle(this.state.x, this.state.y, keyPressed.mousePosition.x,  keyPressed.mousePosition.y  );
-    console.log(toDegrees(angle));
+    if (angle >= -90 && angle =< 90) {
+      this.state.orientation === 'left';
+    } else {
+      this.state.orientation === 'right';
+    }
+
   }
 
   (this.state.iterations.targetHolly < 31) ? this.state.iterations.targetHolly += 1 : this.state.iterations.targetHolly === 30;
@@ -343,14 +348,15 @@ $(document).ready(function() {
     }
   });
 
+
+
   $(window).mousemove(function(event) {
     if (keyPressed.space) {
       // changing ref : worm x and worm y are in canvas ref, not event.client x, event.clientY
-      var ndcX = event.clientX;
-      var ndcY = event.clientY;
-      keyPressed.mousePosition.x = ndcX;
-      keyPressed.mousePosition.y = ndcY;
-      console.log(keyPressed.mousePosition.x, keyPressed.mousePosition.y );
+      var mouseX = parseInt(event.clientX - $("canvas#background").offset().left);
+      var mouseY = parseInt(event.clientY - $("canvas#background").offset().top);
+      keyPressed.mousePosition.x = mouseX;
+      keyPressed.mousePosition.y = mouseY;
     }
   });
 
