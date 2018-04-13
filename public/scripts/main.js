@@ -159,15 +159,15 @@ Worm.prototype.targetHolly = function(canvas, images) {
   if (keyPressed.space) {
     angle = toDegrees(getAngle(this.state.x, this.state.y, keyPressed.mousePosition.x,  keyPressed.mousePosition.y  ));
     console.log(angle);
-    if (angle >= -90 && angle < 90) {
+    if (angle >= -90 && angle < 110) {
       this.state.orientation = 'left';
-      this.state.iterations.targetHolly = Math.ceil(32 * (angle + 90) / 180) + 1;
+      this.state.iterations.targetHolly = Math.ceil(31 * (angle + 90) / 180) - 2 ;
     } else {
       this.state.orientation = 'right';
-      if (angle >= 90 && angle < 180) {
-        this.state.iterations.targetHolly = 32 - Math.ceil(32 * (angle - 90) / 180) + 1;
+      if (angle >= 110 && angle < 180) {
+        this.state.iterations.targetHolly = 31 - Math.ceil(31 * (angle - 90) / 180) ;
       } else {
-        this.state.iterations.targetHolly = Math.ceil(32 * (Math.abs(angle) - 90) / 180) + 1;
+        this.state.iterations.targetHolly = Math.ceil(31 * (Math.abs(angle) - 90) / 180);
       }
     }
     if (this.state.orientation === 'left') {
