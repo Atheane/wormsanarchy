@@ -161,10 +161,14 @@ Worm.prototype.targetHolly = function(canvas, images) {
     console.log(angle);
     if (angle >= -90 && angle < 90) {
       this.state.orientation = 'left';
-      this.state.iterations.targetHolly = Math.ceil(32 * (angle + 90) / 180);
+      this.state.iterations.targetHolly = Math.ceil(32 * (angle + 90) / 180) + 1;
     } else {
       this.state.orientation = 'right';
-      this.state.iterations.targetHolly = Math.ceil(32 * (angle - 90) / 180);
+      if (angle >= 90 && angle < 180) {
+        this.state.iterations.targetHolly = 32 - Math.ceil(32 * (angle - 90) / 180) + 1;
+      } else {
+        this.state.iterations.targetHolly = Math.ceil(32 * (Math.abs(angle) - 90) / 180) + 1;
+      }
     }
     if (this.state.orientation === 'left') {
       context.drawImage(images.targetHollyLeft, 0, images.targetHollyLeft.height * this.state.iterations.targetHolly/32, images.targetHollyLeft.width, images.targetHollyLeft.height/32, this.state.x, this.state.y, 60, 60);
