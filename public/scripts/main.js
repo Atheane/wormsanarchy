@@ -156,22 +156,21 @@ Worm.prototype.targetHolly = function(canvas, images) {
   var angle = 0;
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-
   if (keyPressed.space) {
-    angle = getAngle(this.state.x, this.state.y, keyPressed.mousePosition.x,  keyPressed.mousePosition.y  );
-    if (angle >= -90 && angle =< 90) {
-      this.state.orientation === 'left';
+    angle = toDegrees(getAngle(this.state.x, this.state.y, keyPressed.mousePosition.x,  keyPressed.mousePosition.y  ));
+    console.log(angle);
+    if (angle >= -90 && angle < 90) {
+      this.state.orientation = 'left';
+      this.state.iterations.targetHolly = Math.ceil(32 * (angle + 90) / 180);
     } else {
-      this.state.orientation === 'right';
+      this.state.orientation = 'right';
+      this.state.iterations.targetHolly = Math.ceil(32 * (angle - 90) / 180);
     }
-
-  }
-
-  (this.state.iterations.targetHolly < 31) ? this.state.iterations.targetHolly += 1 : this.state.iterations.targetHolly === 30;
-  if (this.state.orientation === 'left') {
-    context.drawImage(images.targetHollyLeft, 0, images.targetHollyLeft.height * this.state.iterations.targetgetHolly/32, images.targetHollyLeft.width, images.targetHollyLeft.height/32, this.state.x, this.state.y, 60, 60);
-  } else if (this.state.orientation === 'right') {
-    context.drawImage(images.targetHollyRight, 0, images.targetHollyRight.height * this.state.iterations.targetHolly/32, images.targetHollyRight.width, images.targetHollyRight.height/32, this.state.x, this.state.y, 60, 60);
+    if (this.state.orientation === 'left') {
+      context.drawImage(images.targetHollyLeft, 0, images.targetHollyLeft.height * this.state.iterations.targetHolly/32, images.targetHollyLeft.width, images.targetHollyLeft.height/32, this.state.x, this.state.y, 60, 60);
+    } else if (this.state.orientation === 'right') {
+      context.drawImage(images.targetHollyRight, 0, images.targetHollyRight.height * this.state.iterations.targetHolly/32, images.targetHollyRight.width, images.targetHollyRight.height/32, this.state.x, this.state.y, 60, 60);
+    }
   }
 };
 
@@ -397,10 +396,10 @@ var gameLoop = function (timestamp) {
           worm.jump(worm.canvas, imageContainer);
         }
         if (worm.state.events.space) {
-          worm.getHolly(worm.canvas, imageContainer);
+          // worm.getHolly(worm.canvas, imageContainer);
           worm.targetHolly(worm.canvas, imageContainer);
         } else {
-          worm.state.iterations.getHolly = 0;
+          // worm.state.iterations.getHolly = 0;
         }
         // debugger
         // if (worm.state.events.mousePosition.x && worm.state.events.mousePosition.y) {
