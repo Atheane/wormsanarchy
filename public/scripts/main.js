@@ -106,11 +106,6 @@ Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
 Worm.prototype.walk = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  if (this.state.orientation === 'left') {
-    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
-  } else  {
-    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
-  }
   if (this.state.events.left) {
     this.state.orientation = 'left';
     if (this.state.iterations.walk === 14) {this.state.x -= 14;}
@@ -120,6 +115,11 @@ Worm.prototype.walk = function(canvas, images) {
   }
   if (this.state.events.left || this.state.events.right) {
     (this.state.iterations.walk === 14) ? this.state.iterations.walk = 0 : this.state.iterations.walk += 1 ;
+  }
+  if (this.state.orientation === 'left') {
+    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60);
+  } else  {
+    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60);
   }
 };
 
@@ -147,7 +147,7 @@ Worm.prototype.getHolly = function(canvas, images) {
   (this.state.iterations.getHolly < 9) ? this.state.iterations.getHolly += 1 : this.state.iterations.getHolly === 8;
   if (this.state.orientation === 'left') {
     context.drawImage(images.getHollyLeft, 0, images.getHollyLeft.height * this.state.iterations.getHolly/10, images.getHollyLeft.width, images.getHollyLeft.height/10, this.state.x, this.state.y, 60, 60);
-  } else if (this.state.orientation === 'right') {
+  } else {
     context.drawImage(images.getHollyRight, 0, images.getHollyRight.height * this.state.iterations.getHolly/10, images.getHollyRight.width, images.getHollyRight.height/10, this.state.x, this.state.y, 60, 60);
   }
 };
@@ -172,7 +172,7 @@ Worm.prototype.targetHolly = function(canvas, images) {
     }
     if (this.state.orientation === 'left') {
       context.drawImage(images.targetHollyLeft, 0, images.targetHollyLeft.height * this.state.iterations.targetHolly/32, images.targetHollyLeft.width, images.targetHollyLeft.height/32, this.state.x, this.state.y, 60, 60);
-    } else if (this.state.orientation === 'right') {
+    } else {
       context.drawImage(images.targetHollyRight, 0, images.targetHollyRight.height * this.state.iterations.targetHolly/32, images.targetHollyRight.width, images.targetHollyRight.height/32, this.state.x, this.state.y, 60, 60);
     }
   }
@@ -351,8 +351,6 @@ $(document).ready(function() {
     }
   });
 
-
-
   $(window).mousemove(function(event) {
     if (keyPressed.space) {
       // changing ref : worm x and worm y are in canvas ref, not event.client x, event.clientY
@@ -392,23 +390,20 @@ var gameLoop = function (timestamp) {
   if (!game.start1) { game.start1 = timestamp; }
   if (!game.start2) { game.start2 = timestamp; }
   if (timestamp - game.start1 >= 50) {
-    // debugger;
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         worm.walk(worm.canvas, imageContainer);
         if (worm.state.events.up) {
           worm.jump(worm.canvas, imageContainer);
         }
-        if (worm.state.events.space) {
-          // worm.getHolly(worm.canvas, imageContainer);
+        if (worm.state.events.mousePosition.x && worm.state.events.mousePosition.y) {
           worm.targetHolly(worm.canvas, imageContainer);
-        } else {
-          // worm.state.iterations.getHolly = 0;
         }
-        // debugger
-        // if (worm.state.events.mousePosition.x && worm.state.events.mousePosition.y) {
-        //   worm.targetHolly(worm.canvas, imageContainer);
-        // }
+        if (worm.state.events.space) {
+          worm.getHolly(worm.canvas, imageContainer);
+        } else {
+          worm.state.iterations.getHolly = 0;
+        }
       }
     });
     game.start1 = timestamp;
