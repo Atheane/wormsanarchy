@@ -1,7 +1,7 @@
 'use strict';
 
 var express = require('express');
-var port = process.env.PORT || '3000';
+var port = process.env.PORT || '3001';
 var path = require('path');
 var mongoose = require('mongoose');
 var favicon = require('serve-favicon');
