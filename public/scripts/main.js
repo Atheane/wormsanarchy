@@ -126,13 +126,11 @@ Worm.prototype.walk = function(canvas, images) {
 Worm.prototype.jump = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  if (this.state.events.up) {
-    if ( this.state.iterations.jump < 5) {
-      this.state.iterations.jump += 1;
-    } else {
-      this.state.events.up = false;
-      this.state.iterations.jump = 0;
-    }
+  if ( this.state.iterations.jump < 5) {
+    this.state.iterations.jump += 1;
+  } else {
+    this.state.events.up = false;
+    this.state.iterations.jump = 0;
   }
   if(this.state.orientation === 'left') {
     context.drawImage(images.jumpLeft, 0, images.jumpLeft.height * this.state.iterations.jump/6, images.jumpLeft.width, images.jumpLeft.height/6, this.state.x, this.state.y, 60, 60);
@@ -144,7 +142,7 @@ Worm.prototype.jump = function(canvas, images) {
 Worm.prototype.getHolly = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  (this.state.iterations.getHolly < 9) ? this.state.iterations.getHolly += 1 : this.state.iterations.getHolly === 8;
+  (this.state.iterations.getHolly < 8) ? this.state.iterations.getHolly += 1 : this.state.iterations.getHolly = 8;
   if (this.state.orientation === 'left') {
     context.drawImage(images.getHollyLeft, 0, images.getHollyLeft.height * this.state.iterations.getHolly/10, images.getHollyLeft.width, images.getHollyLeft.height/10, this.state.x, this.state.y, 60, 60);
   } else {
@@ -156,8 +154,8 @@ Worm.prototype.targetHolly = function(canvas, images) {
   var angle = 0;
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  if (keyPressed.space) {
-    angle = toDegrees(getAngle(this.state.x, this.state.y, keyPressed.mousePosition.x,  keyPressed.mousePosition.y  ));
+  if (this.state.events.space) {
+    angle = toDegrees(getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y  ));
     console.log(angle);
     if (angle >= -90 && angle < 110) {
       this.state.orientation = 'left';
@@ -211,6 +209,7 @@ $(document).ready(function() {
 
   /// Form Handler
   $('.form-container').fadeIn(500);
+
   $("#form").submit(function(event){
     event.preventDefault();
     var avatar = $('input[name=avatar]:checked').val();
@@ -395,15 +394,13 @@ var gameLoop = function (timestamp) {
         worm.walk(worm.canvas, imageContainer);
         if (worm.state.events.up) {
           worm.jump(worm.canvas, imageContainer);
-        }
-        if (worm.state.events.mousePosition.x && worm.state.events.mousePosition.y) {
-          worm.targetHolly(worm.canvas, imageContainer);
-        }
-        if (worm.state.events.space) {
+        } else if (worm.state.events.space) {
           worm.getHolly(worm.canvas, imageContainer);
-        } else {
-          worm.state.iterations.getHolly = 0;
         }
+        if (!worm.state.events.space) {
+          worm.state.iterations.getHolly = 0
+        }
+        // worm.targetHolly(worm.canvas, imageContainer);
       }
     });
     game.start1 = timestamp;
@@ -457,5 +454,3 @@ function getAngle( x1, y1, x2, y2 ) {
 function toDegrees (angle) {
   return angle * (180 / Math.PI);
 }
-
-
