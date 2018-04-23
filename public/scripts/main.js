@@ -175,6 +175,11 @@ Worm.prototype.targetHolly = function(canvas, images) {
   }
 };
 
+Worm.prototype.getRelativePostion = function() {
+  this.state.ratioX = this.state.x / game.width
+  this.state.ratioY = this.state.y / game.height
+}
+
 
 /// KeyPressed object to stock player inputs
 var keyPressed = {
@@ -254,6 +259,8 @@ $(document).ready(function() {
       };
       var state = { x: Math.floor(Math.random() * (game.width - 150 + 1)) + 100,
         y: Math.ceil(game.height*3.9/5),
+        ratioX: 1,
+        ratioY: 1,
         orientation: 'left',
         events: keyPressed,
         iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0, dropHolly: 0},
@@ -261,6 +268,9 @@ $(document).ready(function() {
         active: true
       };
       worm.init(props, state);
+      worm.getRelativePostion();
+      console.log("compute ratio x and Y")
+      console.log(worm)
       socket.emit('createWorm', worm);
 
       worm.createCanvas(game.backgroundCanvas, game.width, game.height);
@@ -272,15 +282,8 @@ $(document).ready(function() {
       console.log('game start')
 
       $(window).resize(function() {
-        var width = game.width;
-        var height = game.height;
+        console.log("resize")
         setBackground();
-        console.log("just after setBackground", game.height);
-        // debugger;
-        game.worm.state.x = Math.ceil(game.worm.state.x * game.width / width);
-        game.worm.state.y = Math.ceil(game.worm.state.y * game.height / height);
-        var width = game.width;
-        var height = game.height;
       });
     }
   });
@@ -399,6 +402,11 @@ var gameLoop = function (timestamp) {
   if (!game.start1) { game.start1 = timestamp; }
   if (!game.start2) { game.start2 = timestamp; }
   if (timestamp - game.start1 >= 50) {
+    Object.keys(game.worms).forEach(function(pseudo){
+      var worm = game.worms[pseudo]
+      worm.state.x = Math.ceil(game.width * worm.state.ratioX)
+      worm.state.y = Math.ceil(game.height * worm.state.ratioY)
+    })
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         worm.walk(worm.canvas, imageContainer);
