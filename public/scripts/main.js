@@ -101,6 +101,7 @@ Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
   newSiblingCanvas.width = width;
   newSiblingCanvas.height = height;
   this.canvas = newSiblingCanvas;
+  this.canvas.style.zIndex = "1";
 }
 
 Worm.prototype.walk = function(canvas, images) {
@@ -202,6 +203,7 @@ game.players = {};
 $(document).ready(function() {
   console.log('DOM ready');
   setBackground();
+  game.background = new Background;
 
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
@@ -268,9 +270,9 @@ $(document).ready(function() {
         active: true
       };
       worm.init(props, state);
+      // compute ratio x and Y
       worm.getRelativePostion();
       console.log("compute ratio x and Y")
-      console.log(worm)
       socket.emit('createWorm', worm);
 
       worm.createCanvas(game.backgroundCanvas, game.width, game.height);
@@ -280,10 +282,30 @@ $(document).ready(function() {
 
       gameLoop(0);
       console.log('game start')
+      console.log(game.width)
+      console.log(game.height)
+      console.log(Object.assign(game.worm))
+
+      var width = Object.assign(game.width)
+      var height = Object.assign(game.height)
 
       $(window).resize(function() {
         console.log("resize")
-        setBackground();
+        setBackground()
+        updateWormCanvasDimensions(game.worm)
+
+        // Object.keys(game.worms).forEach(function(pseudo){
+        //   var worm = game.worms[pseudo]
+        //   worm.state.x = Math.ceil(game.width * worm.state.ratioX)
+        //   worm.state.y = Math.ceil(game.height * worm.state.ratioY)
+        // })
+        console.log(game.width)
+        console.log(game.height)
+        console.log(Object.assign(game.worm))
+        game.worm.state.x = Math.ceil(game.width * game.worm.state.ratioX)
+        game.worm.state.y = Math.ceil(game.height * game.worm.state.ratioY)
+        width = Object.assign(game.width)
+        height = Object.assign(game.height)
       });
     }
   });
@@ -402,11 +424,6 @@ var gameLoop = function (timestamp) {
   if (!game.start1) { game.start1 = timestamp; }
   if (!game.start2) { game.start2 = timestamp; }
   if (timestamp - game.start1 >= 50) {
-    Object.keys(game.worms).forEach(function(pseudo){
-      var worm = game.worms[pseudo]
-      worm.state.x = Math.ceil(game.width * worm.state.ratioX)
-      worm.state.y = Math.ceil(game.height * worm.state.ratioY)
-    })
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         worm.walk(worm.canvas, imageContainer);
@@ -451,11 +468,8 @@ window.reqAnimFrame = (function(){
 })();
 
 function setBackground() {
-  // debugger;
   game.width = Math.ceil($(window).width() * 0.7);
   game.height = Math.ceil($(window).height() * 0.7);
-  // debugger;
-
   game.backgroundCanvas = document.getElementById('background');
   // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
   game.backgroundCanvas.width = game.width;
@@ -464,10 +478,15 @@ function setBackground() {
   Background.prototype.context = game.backgroundCanvas.getContext('2d');
   Background.prototype.canvasWidth = game.backgroundCanvas.width;
   Background.prototype.canvasHeight = game.backgroundCanvas.height;
-
-  game.background = new Background;
-
 };
+
+function updateWormCanvasDimensions(worm) {
+  var canvas = worm.canvas
+  game.width = Math.ceil($(window).width() * 0.7);
+  game.height = Math.ceil($(window).height() * 0.7);
+  canvas.width = game.width;
+  canvas.height = game.height;
+}
 
 function getAngle( x1, y1, x2, y2 ) {
 
