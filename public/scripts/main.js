@@ -138,18 +138,18 @@ Worm.prototype.jump = function(canvas, images) {
   } else {
     context.drawImage(images.jumpRight, 0, images.jumpRight.height * this.state.iterations.jump/6, images.jumpRight.width, images.jumpRight.height/6, this.state.x, this.state.y, 60, 60)
   }
-}
+};
 
 Worm.prototype.getHolly = function(canvas, images) {
-  var context =  canvas.getContext('2d')
-  context.clearRect(0, 0, canvas.width, canvas.height)
-  (this.state.iterations.getHolly < 8) ? this.state.iterations.getHolly += 1 : this.state.iterations.getHolly = 8
+  var context =  canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  (this.state.iterations.getHolly < 8) ? this.state.iterations.getHolly += 1 : this.state.iterations.getHolly = 8;
   if (this.state.orientation === 'left') {
-    context.drawImage(images.getHollyLeft, 0, images.getHollyLeft.height * this.state.iterations.getHolly/10, images.getHollyLeft.width, images.getHollyLeft.height/10, this.state.x, this.state.y, 60, 60)
-  } else {
-    context.drawImage(images.getHollyRight, 0, images.getHollyRight.height * this.state.iterations.getHolly/10, images.getHollyRight.width, images.getHollyRight.height/10, this.state.x, this.state.y, 60, 60)
+    context.drawImage(images.getHollyLeft, 0, images.getHollyLeft.height * this.state.iterations.getHolly/10, images.getHollyLeft.width, images.getHollyLeft.height/10, this.state.x, this.state.y, 60, 60);
+  } else  {
+    context.drawImage(images.getHollyRight, 0, images.getHollyRight.height * this.state.iterations.getHolly/10, images.getHollyRight.width, images.getHollyRight.height/10, this.state.x, this.state.y, 60, 60);
   }
-}
+};
 
 Worm.prototype.targetHolly = function(canvas, images) {
   var angle = 0
@@ -292,6 +292,9 @@ $(document).ready(function() {
       $(window).resize(function() {
         console.log("resize")
         setBackground()
+        Object.values(game.worms).forEach(function(worm){
+         updateWormCanvasDimensions(worm)
+       })
       })
     }
   })
@@ -318,7 +321,6 @@ $(document).ready(function() {
     if (wormJson) {
       var newWorm = new Worm;
       newWorm.init(wormJson.props, wormJson.state)
-      // debugger;
       newWorm.createCanvas(game.backgroundCanvas, game.width, game.height)
       game.worms[wormJson.props.pseudo] = newWorm
     } else {
@@ -412,10 +414,9 @@ var gameLoop = function (timestamp) {
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
-        updateWormCanvasDimensions(worm)
+        // var c = worm.canvas
         worm.state.x = Math.ceil(game.width * worm.state.ratioX)
         worm.state.y = Math.ceil(game.height * worm.state.ratioY)
-
         worm.walk(worm.canvas, imageContainer)
         worm.getRelativePosition()
         if (worm.state.events.up) {
@@ -472,11 +473,12 @@ function setBackground() {
 };
 
 function updateWormCanvasDimensions(worm) {
-  var canvas = worm.canvas
+  var pseudo = worm.props.pseudo
+  var c = document.getElementById(pseudo)
   game.width = Math.ceil($(window).width() * 0.7);
   game.height = Math.ceil($(window).height() * 0.7);
-  canvas.width = game.width;
-  canvas.height = game.height;
+  c.width = game.width;
+  c.height = game.height;
 }
 
 function getAngle( x1, y1, x2, y2 ) {
