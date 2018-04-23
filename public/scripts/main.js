@@ -13,6 +13,7 @@ imageContainer.getHollyLeft = new Image;
 imageContainer.getHollyRight = new Image;
 imageContainer.targetHollyLeft = new Image;
 imageContainer.targetHollyRight = new Image;
+imageContainer.shoot = new Image;
 
 var imageLoading = function() {
   $(imageContainer.background).on('load', function() {
@@ -69,6 +70,11 @@ var imageLoading = function() {
   imageContainer.targetHollyRight.src = 'images/saintegrenade_target_right.png';
   imageContainer.targetHollyRight.id='targetHollyRight';
 
+  $(imageContainer.shoot).on('load', function() {
+    console.log('shoot Image Loaded');
+  });
+  imageContainer.shoot.src = 'images/hgrenade.png';
+  imageContainer.shoot.id='shoot';
 
 };
 imageLoading();
@@ -82,6 +88,14 @@ Background.prototype.draw = function() {
   this.context.drawImage(imageContainer.background, 0, 0, imageContainer.background.width, imageContainer.background.height, 0, 0, this.canvasHeight*imageContainer.background.width/imageContainer.background.height, this.canvasHeight);
 }
 
+var Weapon = function() {
+  this.init = function(x, y, angle) {
+    this.x = x
+    this.y = y
+    this.angle = 0
+  }
+}
+
 
 ///// Worm
 var Worm = function() {
@@ -89,6 +103,7 @@ var Worm = function() {
     this.props = props, // Data that do not change. Ex : props = {pseudo: 'robert'}
     this.state = state // Data that changes.
     // Ex : state = {x: 158 , y: 3.8/5 * height, orientation: 'left', events: keyPressed, iterations: {walk: 4, jump: 0, getHolly: 0, target: 0, dropHolly: 0}, life: 100, active: true }
+    this.weapon = undefined;
   }
 }
 
@@ -179,6 +194,30 @@ Worm.prototype.targetHolly = function(canvas, images) {
 Worm.prototype.getRelativePosition = function() {
   this.state.ratioX = this.state.x / game.width
   this.state.ratioY = this.state.y / game.height
+}
+
+Worm.prototype.shoot = function(canvas, images) {
+  var context =  canvas.getContext('2d')
+  context.clearRect(0, 0, canvas.width, canvas.height)
+  if (this.state.orientation === 'left') {
+    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60)
+  } else  {
+    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60)
+  }
+  var weapon = new Weapon
+  var angle = toDegrees(getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y  ));
+  weapon.init(this.state.x, this.state.y, angle)
+  this.weapon = weapon
+  console.log(this.weapon)
+}
+
+Weapon.prototype.draw = function(canvas, images) {
+  var context =  canvas.getContext('2d')
+  var t = Date.now()
+  context.clearRect(0, 0, canvas.width, canvas.height)
+  context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot, this.x, this.y, 60, 60)
+  this.x += 5 * (Date.now() - t) * Math.sin(this.angle)
+  this.y -= 5 * (Date.now() - t) * Math.cos(this.angle)
 }
 
 
@@ -377,6 +416,10 @@ $(document).ready(function() {
     }
   })
 
+  $(window).click(function(event) {
+    keyPressed['click'] = true
+  })
+
   socket.on('updateWormToAll', function(wormJson) {
     updateWormObject(wormJson)
   })
@@ -425,13 +468,16 @@ var gameLoop = function (timestamp) {
           worm.getHolly(worm.canvas, imageContainer)
           if (worm.state.events.mousePosition.x) {
             worm.targetHolly(worm.canvas, imageContainer)
-          } else {
-            worm.state.iterations.targetHolly = 0
           }
-        } else { /// !space
-          // worm.shoot(worm.canvas, imageContainer)
+          if (worm.state.events.click) {
+            worm.shoot(worm.canvas, imageContainer)
+            worm.weapon.draw(worm.canvas, imageContainer)
+          }
+        } else  {
           worm.state.iterations.getHolly = 0
+          worm.state.iterations.targetHolly = 0
           worm.state.events.mousePosition.x = undefined
+          worm.state.events.click = false
         }
         // if (!worm.state.events.space) {
         //
