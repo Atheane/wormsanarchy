@@ -396,6 +396,9 @@ var gameLoop = function (timestamp) {
           worm.jump(worm.canvas, imageContainer);
         } else if (worm.state.events.space) {
           worm.getHolly(worm.canvas, imageContainer);
+          if (worm.state.events.mousePosition.x) {
+            worm.targetHolly(worm.canvas, imageContainer)
+          }
         }
         if (!worm.state.events.space) {
           worm.state.iterations.getHolly = 0
