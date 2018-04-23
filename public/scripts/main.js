@@ -196,6 +196,7 @@ game.players = {};
 
 $(document).ready(function() {
   console.log('DOM ready');
+  setBackground();
 
   /// Fetch all active users
   socket.on('allActivePlayers', function(players) {
@@ -246,7 +247,6 @@ $(document).ready(function() {
       $('.game-container').fadeIn(500);
       $('ul.players').append('<li>'+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>');
       /// Drawing Background
-      setBackground();
 
       var worm = new Worm;
       var props = {
@@ -304,11 +304,16 @@ $(document).ready(function() {
   });
 
   function createWormObject(wormJson) {
-    var newWorm = new Worm;
-    newWorm.init(wormJson.props, wormJson.state);
-    // debugger;
-    newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
-    game.worms[wormJson.props.pseudo] = newWorm;
+    if (wormJson) {
+      var newWorm = new Worm;
+      newWorm.init(wormJson.props, wormJson.state);
+      // debugger;
+      newWorm.createCanvas(game.backgroundCanvas, game.width, game.height);
+      game.worms[wormJson.props.pseudo] = newWorm;
+    } else {
+      console.log("wormJson in createWormObject is")
+      console.log(wormJson)
+    }
   };
 
 
@@ -364,11 +369,17 @@ $(document).ready(function() {
   });
 
 function updateWormObject(wormJson) {
-  var worm = new Worm;
-  worm.init(wormJson.props, wormJson.state);
-  var canvas = document.getElementById(wormJson.props.pseudo);
-  worm.canvas = canvas;
-  game.worms[wormJson.props.pseudo] = worm;
+  if (wormJson) {
+    var worm = new Worm;
+    worm.init(wormJson.props, wormJson.state);
+    var canvas = document.getElementById(wormJson.props.pseudo);
+    worm.canvas = canvas;
+    game.worms[wormJson.props.pseudo] = worm;
+  } else {
+    console.log("wormJson in updateWormObject is")
+    console.log(wormJson)
+  }
+
 };
 
   // socket.on('stopWorm', function(worm) {
