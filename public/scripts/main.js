@@ -398,12 +398,16 @@ var gameLoop = function (timestamp) {
           worm.getHolly(worm.canvas, imageContainer);
           if (worm.state.events.mousePosition.x) {
             worm.targetHolly(worm.canvas, imageContainer)
+          } else {
+            worm.state.iterations.targetHolly = 0
           }
-        }
-        if (!worm.state.events.space) {
+        } else {
           worm.state.iterations.getHolly = 0
+          worm.state.events.mousePosition.x = undefined
         }
-        // worm.targetHolly(worm.canvas, imageContainer);
+        // if (!worm.state.events.space) {
+        //
+        // }
       }
     });
     game.start1 = timestamp;
