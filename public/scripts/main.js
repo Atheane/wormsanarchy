@@ -106,10 +106,10 @@ Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
 Worm.prototype.walk = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
-  if (this.state.events.left) {
+  if (this.state.events.left && !this.state.events.space) {
     this.state.orientation = 'left';
     if (this.state.iterations.walk === 14) {this.state.x -= 14;}
-  } else if (this.state.events.right) {
+  } else if (this.state.events.right && !this.state.events.space) {
     this.state.orientation = 'right';
     if (this.state.iterations.walk  === 14) {this.state.x += 14;}
   }
@@ -156,7 +156,6 @@ Worm.prototype.targetHolly = function(canvas, images) {
   context.clearRect(0, 0, canvas.width, canvas.height);
   if (this.state.events.space) {
     angle = toDegrees(getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y  ));
-    console.log(angle);
     if (angle >= -90 && angle < 110) {
       this.state.orientation = 'left';
       this.state.iterations.targetHolly = Math.ceil(31 * (angle + 90) / 180) - 2 ;
@@ -401,7 +400,8 @@ var gameLoop = function (timestamp) {
           } else {
             worm.state.iterations.targetHolly = 0
           }
-        } else {
+        } else { /// !space
+          // worm.shoot(worm.canvas, imageContainer)
           worm.state.iterations.getHolly = 0
           worm.state.events.mousePosition.x = undefined
         }
