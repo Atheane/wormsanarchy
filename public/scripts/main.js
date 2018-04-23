@@ -92,7 +92,7 @@ var Weapon = function() {
   this.init = function(x, y, angle) {
     this.x = x
     this.y = y
-    this.angle = 0
+    this.angle = angle
   }
 }
 
@@ -208,16 +208,18 @@ Worm.prototype.shoot = function(canvas, images) {
   var angle = toDegrees(getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y  ));
   weapon.init(this.state.x, this.state.y, angle)
   this.weapon = weapon
-  console.log(this.weapon)
+  return true
 }
 
 Weapon.prototype.draw = function(canvas, images) {
+  console.log('weapon draw is called')
   var context =  canvas.getContext('2d')
-  var t = Date.now()
+  var t = new Date('January 01, 2018')
   context.clearRect(0, 0, canvas.width, canvas.height)
-  context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot, this.x, this.y, 60, 60)
+  context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot.height, this.x, this.y, 38, 38)
   this.x += 5 * (Date.now() - t) * Math.sin(this.angle)
   this.y -= 5 * (Date.now() - t) * Math.cos(this.angle)
+  console.log(this.x, this.y)
 }
 
 
@@ -468,10 +470,13 @@ var gameLoop = function (timestamp) {
           worm.getHolly(worm.canvas, imageContainer)
           if (worm.state.events.mousePosition.x) {
             worm.targetHolly(worm.canvas, imageContainer)
-          }
-          if (worm.state.events.click) {
-            worm.shoot(worm.canvas, imageContainer)
-            worm.weapon.draw(worm.canvas, imageContainer)
+            if (worm.state.events.click) {
+              var hasShot = worm.shoot(worm.canvas, imageContainer)
+              worm.state.events.click = false
+            }
+            if (hasShot) {
+              worm.weapon.draw(worm.canvas, imageContainer)
+            }
           }
         } else  {
           worm.state.iterations.getHolly = 0
