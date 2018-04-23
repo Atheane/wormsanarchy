@@ -63,6 +63,7 @@ io.on('connection', function (socket) {
   });
 
   socket.on('newPlayer', function (player) {
+    console.log("newPlayer", player)
     players[socket.id] = player;
     User.findOne({pseudo: player.pseudo}, function (err, user_exists) {
       if (err) {console.log(err.name + ': ' + err.message); }
@@ -121,5 +122,3 @@ app.use(function(error, req, res, next) {
 
 app.set('port', port);
 server.listen(port);
-
-
