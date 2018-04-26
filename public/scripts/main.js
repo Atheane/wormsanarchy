@@ -93,6 +93,7 @@ var Weapon = function() {
     this.x = x
     this.y = y
     this.angle = angle
+    this.t = 0
   }
 }
 
@@ -205,21 +206,23 @@ Worm.prototype.shoot = function(canvas, images) {
     context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60)
   }
   var weapon = new Weapon
-  var angle = toDegrees(getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y  ));
-  weapon.init(this.state.x, this.state.y, angle)
+  var angleRadian = getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y);
+  weapon.init(this.state.x, this.state.y, angleRadian)
   this.weapon = weapon
-  return true
+  this.hasShot = true
 }
 
 Weapon.prototype.draw = function(canvas, images) {
   console.log('weapon draw is called')
   var context =  canvas.getContext('2d')
-  var t = new Date('January 01, 2018')
   context.clearRect(0, 0, canvas.width, canvas.height)
   context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot.height, this.x, this.y, 38, 38)
-  this.x += 5 * (Date.now() - t) * Math.sin(this.angle)
-  this.y -= 5 * (Date.now() - t) * Math.cos(this.angle)
+  this.t += 0.5
+  this.x = this.x - Math.ceil(20 * Math.cos(this.angle) * this.t)
+  this.y = this.y - Math.ceil(20 * Math.sin(this.angle) * this.t - 0.5 * 9.81 * this.t * this.t)
   console.log(this.x, this.y)
+  console.log(this.t, this.angle, Date.now())
+
 }
 
 
@@ -239,6 +242,7 @@ console.log('Client connected to socket')
 var game = {}
 game.worms = {}
 game.players = {}
+
 
 
 $(document).ready(function() {
@@ -306,6 +310,7 @@ $(document).ready(function() {
         ratioY: 1,
         orientation: 'left',
         events: keyPressed,
+        hasShot: false,
         iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0, dropHolly: 0},
         life: 100,
         active: true
@@ -321,21 +326,17 @@ $(document).ready(function() {
       game.worms[worm.props.pseudo] = worm
       game.worm = worm;
 
-      gameLoop(0);
-      console.log('game start')
-      console.log(game.width)
-      console.log(game.height)
-      console.log(Object.assign(game.worm))
+      gameLoop(0)
 
-      var width = Object.assign(game.width)
-      var height = Object.assign(game.height)
+      game.weaponCanvas = document.getElementById('weapon')
+      updateWeaponCanvasDimensions()
 
       $(window).resize(function() {
-        console.log("resize")
         setBackground()
         Object.values(game.worms).forEach(function(worm){
          updateWormCanvasDimensions(worm)
-       })
+        })
+        updateWeaponCanvasDimensions()
       })
     }
   })
@@ -470,12 +471,11 @@ var gameLoop = function (timestamp) {
           worm.getHolly(worm.canvas, imageContainer)
           if (worm.state.events.mousePosition.x) {
             worm.targetHolly(worm.canvas, imageContainer)
-            if (worm.state.events.click) {
-              var hasShot = worm.shoot(worm.canvas, imageContainer)
-              worm.state.events.click = false
+            if (worm.state.events.click && !worm.hasShot) {
+              worm.shoot(worm.canvas, imageContainer)
             }
-            if (hasShot) {
-              worm.weapon.draw(worm.canvas, imageContainer)
+            if (worm.hasShot) {
+              worm.weapon.draw(game.weaponCanvas, imageContainer)
             }
           }
         } else  {
@@ -483,6 +483,7 @@ var gameLoop = function (timestamp) {
           worm.state.iterations.targetHolly = 0
           worm.state.events.mousePosition.x = undefined
           worm.state.events.click = false
+          worm.hasShot = false
         }
         // if (!worm.state.events.space) {
         //
@@ -530,6 +531,14 @@ function updateWormCanvasDimensions(worm) {
   game.height = Math.ceil($(window).height() * 0.7);
   c.width = game.width;
   c.height = game.height;
+}
+
+function updateWeaponCanvasDimensions() {
+  var weaponCanvas = document.getElementById("weapon")
+  game.width = Math.ceil($(window).width() * 0.7);
+  game.height = Math.ceil($(window).height() * 0.7);
+  weaponCanvas.width = game.width;
+  weaponCanvas.height = game.height;
 }
 
 function getAngle( x1, y1, x2, y2 ) {
