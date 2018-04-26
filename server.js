@@ -104,6 +104,14 @@ io.on('connection', function (socket) {
     socket.broadcast.emit('updateWormToAll', worm);
   });
 
+  socket.on('createWeapon', function(weapon) {
+    socket.broadcast.emit('createWeaponToAll', weapon);
+  })
+
+  socket.on('updateWeapon', function(weapon) {
+    socket.broadcast.emit('updateWeaponToAll', weapon);
+  })
+
 });
 
 
