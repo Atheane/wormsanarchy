@@ -99,18 +99,10 @@ io.on('connection', function (socket) {
 
 
   socket.on('updateWorm', function(worm) {
+    console.log(worm)
     worms[socket.id] = worm;
-    // worm updated to all players except client
     socket.broadcast.emit('updateWormToAll', worm);
   });
-
-  socket.on('createWeapon', function(weapon) {
-    socket.broadcast.emit('createWeaponToAll', weapon);
-  })
-
-  socket.on('updateWeapon', function(weapon) {
-    socket.broadcast.emit('updateWeaponToAll', weapon);
-  })
 
 });
 

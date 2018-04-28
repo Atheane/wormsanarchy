@@ -210,10 +210,6 @@ Worm.prototype.shoot = function(canvas, images) {
   var angleRadian = getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y);
   weapon.init(this.state.x, this.state.y, angleRadian)
   this.weapon = weapon
-  socket.emit(
-    'createWeapon',
-    { weapon: weapon, pseudo: this.props.pseudo }
-  )
 }
 
 Weapon.prototype.draw = function(canvas, images) {
@@ -224,10 +220,7 @@ Weapon.prototype.draw = function(canvas, images) {
   this.t += 0.5
   this.x -= Math.ceil(20 * Math.cos(this.angle) * this.t)
   this.y -= Math.ceil(20 * Math.sin(this.angle) * this.t - 0.5 * 8 * this.t * this.t)
-  socket.emit(
-    'updateWeapon',
-    { weapon: this, pseudo: game.worm.props.pseudo }
-  )
+  socket.emit("updateWorm", game.worm)
 }
 
 
@@ -315,7 +308,6 @@ $(document).ready(function() {
         ratioY: 1,
         orientation: 'left',
         events: keyPressed,
-        hasShot: false,
         iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0, dropHolly: 0},
         life: 100,
         active: true
@@ -323,7 +315,7 @@ $(document).ready(function() {
       worm.init(props, state)
       // compute ratio x and Y
       worm.getRelativePosition()
-      console.log("compute ratio x and Y")
+      // console.log("compute ratio x and Y")
       socket.emit('createWorm', worm)
 
       worm.createCanvas(game.backgroundCanvas, game.width, game.height)
@@ -426,6 +418,7 @@ $(document).ready(function() {
 
   $(window).click(function(event) {
     keyPressed['click'] = true
+    socket.emit('updateWorm', game.worm)
   })
 
   socket.on('updateWormToAll', function(wormJson) {
@@ -438,42 +431,50 @@ function updateWormObject(wormJson) {
     worm.init(wormJson.props, wormJson.state)
     var canvas = document.getElementById(wormJson.props.pseudo)
     worm.canvas = canvas
+    if (wormJson.weapon) {
+      var weapon = new Weapon
+      var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x, worm.state.events.mousePosition.y);
+      weapon.init(wormJson.weapon.x, wormJson.weapon.y, angleRadian)
+      worm.weapon = weapon
+    }
     game.worms[wormJson.props.pseudo] = worm
   } else {
     console.log("wormJson in updateWormObject is")
     console.log(wormJson)
   }
-}
-
-socket.on('createWeaponToAll', function(weaponJson) {
-  if (weaponJson) {
-    var worm = game.worms[weaponJson.pseudo]
-    var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x,  worm.state.events.mousePosition.y);
-    var weapon = new Weapon
-    weapon.init(worm.state.x, worm.state.y, angleRadian)
-    worm.weapon = weapon
-  } else {
-    console.log("websocket createWeaponToAll returns nothing")
-  }
-  console.log(worm)
-})
-
-socket.on('updateWeaponToAll', function(weaponJson) {
-  updateWeaponObject(weaponJson)
-})
-
-function updateWeaponObject(weaponJson) {
-  if (weaponJson) {
-    var worm = game.worms[weaponJson.pseudo]
-    var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x,  worm.state.events.mousePosition.y);
-    var weapon = new Weapon
-    weapon.init(worm.state.x, worm.state.y, angleRadian)
-    worm.weapon = weapon
-  } else {
-    console.log("websocket updateWeaponToAll returns nothing")
-  }
   console.log(worm)
 }
+
+// socket.on('createWeaponToAll', function(weaponJson) {
+//   if (weaponJson) {
+//     var worm = game.worms[weaponJson.pseudo]
+//     worm.shoot()
+//     var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x,  worm.state.events.mousePosition.y);
+//     var weapon = new Weapon
+//     weapon.init(worm.state.x, worm.state.y, angleRadian)
+//     worm.weapon = weapon
+//   } else {
+//     console.log("websocket createWeaponToAll returns nothing")
+//   }
+//   console.log(worm)
+// })
+
+// socket.on('updateWeaponToAll', function(weaponJson) {
+//   updateWeaponObject(weaponJson)
+// })
+
+// function updateWeaponObject(weaponJson) {
+//   if (weaponJson) {
+//     var worm = game.worms[weaponJson.pseudo]
+//     var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x,  worm.state.events.mousePosition.y);
+//     var weapon = new Weapon
+//     weapon.init(worm.state.x, worm.state.y, angleRadian)
+//     worm.weapon = weapon
+//   } else {
+//     console.log("websocket updateWeaponToAll returns nothing")
+//   }
+//   // console.log(worm)
+// }
 
 
 
@@ -518,15 +519,13 @@ var gameLoop = function (timestamp) {
           worm.state.events.click = false
         }
         if (worm.weapon) {
-          if (worm.weapon.y > worm.state.y + 50) {
+          if (worm.weapon.y > worm.state.y + 20) {
             worm.weapon.active = false
           }
           if (worm.weapon.active) {
             worm.weapon.draw(game.weaponCanvas, imageContainer)
           }
         }
-
-
       }
     });
     game.start1 = timestamp
