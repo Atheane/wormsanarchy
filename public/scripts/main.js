@@ -445,47 +445,6 @@ function updateWormObject(wormJson) {
   console.log(worm)
 }
 
-// socket.on('createWeaponToAll', function(weaponJson) {
-//   if (weaponJson) {
-//     var worm = game.worms[weaponJson.pseudo]
-//     worm.shoot()
-//     var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x,  worm.state.events.mousePosition.y);
-//     var weapon = new Weapon
-//     weapon.init(worm.state.x, worm.state.y, angleRadian)
-//     worm.weapon = weapon
-//   } else {
-//     console.log("websocket createWeaponToAll returns nothing")
-//   }
-//   console.log(worm)
-// })
-
-// socket.on('updateWeaponToAll', function(weaponJson) {
-//   updateWeaponObject(weaponJson)
-// })
-
-// function updateWeaponObject(weaponJson) {
-//   if (weaponJson) {
-//     var worm = game.worms[weaponJson.pseudo]
-//     var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x,  worm.state.events.mousePosition.y);
-//     var weapon = new Weapon
-//     weapon.init(worm.state.x, worm.state.y, angleRadian)
-//     worm.weapon = weapon
-//   } else {
-//     console.log("websocket updateWeaponToAll returns nothing")
-//   }
-//   // console.log(worm)
-// }
-
-
-
-  // socket.on('stopWorm', function(worm) {
-  //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
-  // });
-
-  // socket.on('stopWormToAll', function(worm) {
-  //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
-  // });
-
 });
 
 game.start1
