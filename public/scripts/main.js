@@ -369,6 +369,13 @@ $(document).ready(function() {
     }
   }
 
+  socket.on('updateScoreToAll', function(data) {
+    var shooter = game.worms[data.shooter.props.pseudo]
+    shooter.state.score = data.shooter.state.score
+
+    var shooted = game.worms[data.shooted.props.pseudo]
+    shooted.state.life = data.shooted.state.life
+  })
 
   $(window).keydown(function(event) {
     if (event.keyCode === 37) {
@@ -485,17 +492,12 @@ var gameLoop = function (timestamp) {
             worm.weapon.draw(game.weaponCanvas, imageContainer);
             Object.values(game.worms).forEach( function(wormB) {
               if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
-                console.log("collision");
-                worm.state.score += 50;
-                wormB.state.life = wormB.state.life - 50;
-                socket.emit('updateWorm', worm);
                 worm.weapon.active = false;
-                if (wormB.state.life <= 0) {
-                  worm.state.score += 100;
-                  socket.emit('updateWorm', worm);
-                  wormB.state.active = false;
-                }
-                console.log(game.worms);
+                console.log("collision")
+                socket.emit('collision', {
+                  shooter: worm.props.pseudo,
+                  shooted: wormB.props.pseudo
+                });
               }
             })
           }
@@ -565,7 +567,7 @@ function toDegrees (angle) {
 }
 
 function collisionDetection (w1, w2) {
-  var width = Math.ceil($(window).width() * 0.02)
+  var width = Math.ceil($(window).width() * 0.1)
   return (w1.x < w2.x + width &&  w1.x + width > w2.x &&
    w1.y < w2.y + width &&  width + w1.y > w2.y)
 }
