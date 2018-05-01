@@ -114,11 +114,7 @@ io.on('connection', function (socket) {
   socket.on('collision', function(data) {
     console.log("collision")
     var shooter = search(data.shooter, Object.values(worms))
-    console.log("shooter")
-    console.log(shooter)
     var shooted = search(data.shooted, Object.values(worms))
-    console.log("shooted")
-    console.log(shooted)
 
     shooter.state.score += 50
     shooted.state.life -= 50
@@ -133,13 +129,21 @@ io.on('connection', function (socket) {
       shooted: shooted
     })
 
-    // User.findOne({pseudo: data.shooter}, function (err, user) {
-    //   if (err) {console.log(err.name + ': ' + err.message); }
-    //   console.log(user, " score updated")
-    //   user.score += 50
-    //   user.save()
-    // });
+    // update the shooter score
+    User.findOne({pseudo: shooter.props.pseudo}, function (err, user) {
+      if (err) {console.log(err.name + ': ' + err.message); }
+      console.log(user, " score updated")
+      user.score = shooter.state.score
+      user.save()
+    });
 
+    // update the shooted status
+    User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
+      if (err) {console.log(err.name + ': ' + err.message); }
+      console.log(user, " status updated")
+      user.active = shooted.state.active
+      user.save()
+    });
 
   });
 
