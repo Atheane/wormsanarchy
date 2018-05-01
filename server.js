@@ -53,6 +53,8 @@ var worms = {};
 var keyPressed;
 var InitY;
 
+
+
 io.on('connection', function (socket) {
   // Fetch all active worms
 
@@ -79,7 +81,7 @@ io.on('connection', function (socket) {
             avatar: player.avatar,
             dateInscription: player.tsp,
             active: true,
-            maxScore: 0
+            score: 0
           });
 
         user.save(function (err) {
@@ -100,11 +102,73 @@ io.on('connection', function (socket) {
 
   socket.on('updateWorm', function(worm) {
     worms[socket.id] = worm;
-    // worm updated to all players except client
     socket.broadcast.emit('updateWormToAll', worm);
   });
 
+  function search(pseudo, worms){
+    for (var i=0; i < worms.length; i++) {
+      if (worms[i].props.pseudo === pseudo) {
+        return worms[i];
+      }
+    }
+  }
+
+  socket.on('collision', function(data) {
+    console.log("collision")
+    var shooter = search(data.shooter, Object.values(worms))
+    var shooted = search(data.shooted, Object.values(worms))
+
+    shooter.state.score += 50
+    shooted.state.life -= 50
+
+    if (shooted.state.life <= 0) {
+      shooted.state.active = false
+      shooter.state.score += 100
+    }
+
+    socket.broadcast.emit('updateScoreToAll', {
+      shooter: shooter,
+      shooted: shooted
+    })
+
+    // update the shooter score
+    User.findOne({pseudo: shooter.props.pseudo}, function (err, user) {
+      if (err) {console.log(err.name + ': ' + err.message); }
+      console.log(user, " score updated")
+      user.score = shooter.state.score
+      user.save()
+    });
+
+    // update the shooted status
+    User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
+      if (err) {console.log(err.name + ': ' + err.message); }
+      console.log(user, " status updated")
+      user.active = shooted.state.active
+      user.save()
+    });
+
+  });
+
+  socket.on('disconnect', function() {
+     console.log('Got disconnect!');
+     var player = worms[socket.id];
+
+     if (player) {
+       User.findOne({pseudo: player.props.pseudo}, function (err, player) {
+         if (err) {console.log(err.name + ': ' + err.message); }
+         console.log(player, " status updated")
+         player.active = false
+         player.save()
+       });
+     }
+
+     socket.emit('user disconnected',  worms[socket.id] );
+     socket.broadcast.emit('user disconnected',  worms[socket.id] );
+     delete worms[socket.id];
+  });
+
 });
+
 
 
 /// Handle 404

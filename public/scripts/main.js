@@ -13,6 +13,7 @@ imageContainer.getHollyLeft = new Image;
 imageContainer.getHollyRight = new Image;
 imageContainer.targetHollyLeft = new Image;
 imageContainer.targetHollyRight = new Image;
+imageContainer.shoot = new Image;
 
 var imageLoading = function() {
   $(imageContainer.background).on('load', function() {
@@ -69,6 +70,11 @@ var imageLoading = function() {
   imageContainer.targetHollyRight.src = 'images/saintegrenade_target_right.png';
   imageContainer.targetHollyRight.id='targetHollyRight';
 
+  $(imageContainer.shoot).on('load', function() {
+    console.log('shoot Image Loaded');
+  });
+  imageContainer.shoot.src = 'images/hgrenade.png';
+  imageContainer.shoot.id='shoot';
 
 };
 imageLoading();
@@ -82,6 +88,16 @@ Background.prototype.draw = function() {
   this.context.drawImage(imageContainer.background, 0, 0, imageContainer.background.width, imageContainer.background.height, 0, 0, this.canvasHeight*imageContainer.background.width/imageContainer.background.height, this.canvasHeight);
 }
 
+var Weapon = function() {
+  this.init = function(x, y, angle) {
+    this.x = x
+    this.y = y
+    this.angle = angle
+    this.t = 0
+    this.active = true
+  }
+}
+
 
 ///// Worm
 var Worm = function() {
@@ -89,6 +105,7 @@ var Worm = function() {
     this.props = props, // Data that do not change. Ex : props = {pseudo: 'robert'}
     this.state = state // Data that changes.
     // Ex : state = {x: 158 , y: 3.8/5 * height, orientation: 'left', events: keyPressed, iterations: {walk: 4, jump: 0, getHolly: 0, target: 0, dropHolly: 0}, life: 100, active: true }
+    this.weapon = undefined;
   }
 }
 
@@ -181,6 +198,31 @@ Worm.prototype.getRelativePosition = function() {
   this.state.ratioY = this.state.y / game.height
 }
 
+Worm.prototype.shoot = function(canvas, images) {
+  var context =  canvas.getContext('2d')
+  context.clearRect(0, 0, canvas.width, canvas.height)
+  if (this.state.orientation === 'left') {
+    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60)
+  } else  {
+    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60)
+  }
+  var weapon = new Weapon
+  var angleRadian = getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y);
+  weapon.init(this.state.x, this.state.y, angleRadian)
+  this.weapon = weapon
+}
+
+Weapon.prototype.draw = function(canvas, images) {
+  // console.log('weapon draw is called')
+  var context =  canvas.getContext('2d')
+  context.clearRect(0, 0, canvas.width, canvas.height)
+  context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot.height, this.x, this.y, 38, 38)
+  this.t += 0.5
+  this.x -= Math.ceil(20 * Math.cos(this.angle) * this.t)
+  this.y -= Math.ceil(20 * Math.sin(this.angle) * this.t - 0.5 * 8 * this.t * this.t)
+  socket.emit("updateWorm", game.worm)
+}
+
 
 /// KeyPressed object to stock player inputs
 var keyPressed = {
@@ -198,6 +240,7 @@ console.log('Client connected to socket')
 var game = {}
 game.worms = {}
 game.players = {}
+
 
 
 $(document).ready(function() {
@@ -252,7 +295,7 @@ $(document).ready(function() {
     } else {
       $('.form-container').hide()
       $('.game-container').fadeIn(500)
-      $('ul.players').append('<li>'+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
+      $('ul.players').append(`<li id=li_${game.player.pseudo}>`+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
       /// Drawing Background
 
       var worm = new Worm;
@@ -265,14 +308,15 @@ $(document).ready(function() {
         ratioY: 1,
         orientation: 'left',
         events: keyPressed,
-        iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0, dropHolly: 0},
+        iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0},
         life: 100,
-        active: true
+        score: 0,
+        active: true,
       }
       worm.init(props, state)
       // compute ratio x and Y
       worm.getRelativePosition()
-      console.log("compute ratio x and Y")
+      // console.log("compute ratio x and Y")
       socket.emit('createWorm', worm)
 
       worm.createCanvas(game.backgroundCanvas, game.width, game.height)
@@ -280,27 +324,30 @@ $(document).ready(function() {
       game.worms[worm.props.pseudo] = worm
       game.worm = worm;
 
-      gameLoop(0);
-      console.log('game start')
-      console.log(game.width)
-      console.log(game.height)
-      console.log(Object.assign(game.worm))
+      gameLoop(0)
 
-      var width = Object.assign(game.width)
-      var height = Object.assign(game.height)
+      game.weaponCanvas = document.getElementById('weapon')
+      updateWeaponCanvasDimensions()
 
       $(window).resize(function() {
-        console.log("resize")
         setBackground()
         Object.values(game.worms).forEach(function(worm){
          updateWormCanvasDimensions(worm)
-       })
+        })
+        updateWeaponCanvasDimensions()
       })
     }
   })
 
   socket.on('newPlayerToAll', function(player){
-    $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
+    $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
+  })
+
+  socket.on('user disconnected', function(data) {
+    console.log(data, "disconnected")
+    if (data) {
+      $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
+    }
   })
 
 
@@ -329,6 +376,14 @@ $(document).ready(function() {
     }
   }
 
+  socket.on('updateScoreToAll', function(data) {
+    var shooter = game.worms[data.shooter.props.pseudo]
+    shooter.state.score = data.shooter.state.score
+    $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
+
+    var shooted = game.worms[data.shooted.props.pseudo]
+    shooted.state.life = data.shooted.state.life
+  })
 
   $(window).keydown(function(event) {
     if (event.keyCode === 37) {
@@ -377,6 +432,11 @@ $(document).ready(function() {
     }
   })
 
+  $(window).click(function(event) {
+    keyPressed['click'] = true
+    socket.emit('updateWorm', game.worm)
+  })
+
   socket.on('updateWormToAll', function(wormJson) {
     updateWormObject(wormJson)
   })
@@ -387,21 +447,18 @@ function updateWormObject(wormJson) {
     worm.init(wormJson.props, wormJson.state)
     var canvas = document.getElementById(wormJson.props.pseudo)
     worm.canvas = canvas
+    if (wormJson.weapon) {
+      var weapon = new Weapon
+      var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x, worm.state.events.mousePosition.y);
+      weapon.init(wormJson.weapon.x, wormJson.weapon.y, angleRadian)
+      worm.weapon = weapon
+    }
     game.worms[wormJson.props.pseudo] = worm
   } else {
     console.log("wormJson in updateWormObject is")
     console.log(wormJson)
   }
-
 }
-
-  // socket.on('stopWorm', function(worm) {
-  //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
-  // });
-
-  // socket.on('stopWormToAll', function(worm) {
-  //   wormDraw(wormCanvas, worm, imageContainer.walkLeft, imageContainer.walkRight, imageContainer.jumpLeft, imageContainer.jumpRight);
-  // });
 
 });
 
@@ -415,28 +472,46 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         // var c = worm.canvas
-        worm.state.x = Math.ceil(game.width * worm.state.ratioX)
-        worm.state.y = Math.ceil(game.height * worm.state.ratioY)
-        worm.walk(worm.canvas, imageContainer)
-        worm.getRelativePosition()
+        worm.state.x = Math.ceil(game.width * worm.state.ratioX);
+        worm.state.y = Math.ceil(game.height * worm.state.ratioY);
+        worm.walk(worm.canvas, imageContainer);
+        worm.getRelativePosition();
         if (worm.state.events.up) {
-          worm.jump(worm.canvas, imageContainer)
+          worm.jump(worm.canvas, imageContainer);
         } else if (worm.state.events.space) {
-          worm.getHolly(worm.canvas, imageContainer)
+          worm.getHolly(worm.canvas, imageContainer);
           if (worm.state.events.mousePosition.x) {
-            worm.targetHolly(worm.canvas, imageContainer)
-          } else {
-            worm.state.iterations.targetHolly = 0
+            worm.targetHolly(worm.canvas, imageContainer);
+            if (worm.state.events.click) {
+              worm.shoot(worm.canvas, imageContainer);
+            }
           }
-        } else { /// !space
-          // worm.shoot(worm.canvas, imageContainer)
-          worm.state.iterations.getHolly = 0
-          worm.state.events.mousePosition.x = undefined
+        } else  {
+          worm.state.iterations.getHolly = 0;
+          worm.state.iterations.targetHolly = 0;
+          worm.state.events.mousePosition.x = undefined;
+          worm.state.events.click = false;
         }
-        // if (!worm.state.events.space) {
-        //
-        // }
+        if (worm.weapon) {
+          if (worm.weapon.y > worm.state.y + 20) {
+            worm.weapon.active = false;
+          }
+          if (worm.weapon.active) {
+            worm.weapon.draw(game.weaponCanvas, imageContainer);
+            Object.values(game.worms).forEach( function(wormB) {
+              if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
+                worm.weapon.active = false;
+                console.log("collision")
+                socket.emit('collision', {
+                  shooter: worm.props.pseudo,
+                  shooted: wormB.props.pseudo
+                });
+              }
+            })
+          }
+        }
       }
+      // console.log(worm)
     });
     game.start1 = timestamp
   }
@@ -447,17 +522,7 @@ var gameLoop = function (timestamp) {
   window.reqAnimFrame(gameLoop)
 };
 
-// Polyfill for request animation frame
-window.reqAnimFrame = (function(){
-  return  window.requestAnimationFrame   ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame    ||
-    window.oRequestAnimationFrame      ||
-    window.msRequestAnimationFrame     ||
-    function(callback, e){
-      window.setTimeout(callback, 1000 / 60);
-    };
-})();
+
 
 function setBackground() {
   game.width = Math.ceil($(window).width() * 0.7);
@@ -481,10 +546,16 @@ function updateWormCanvasDimensions(worm) {
   c.height = game.height;
 }
 
+function updateWeaponCanvasDimensions() {
+  var weaponCanvas = document.getElementById("weapon")
+  game.width = Math.ceil($(window).width() * 0.7);
+  game.height = Math.ceil($(window).height() * 0.7);
+  weaponCanvas.width = game.width;
+  weaponCanvas.height = game.height;
+}
+
 function getAngle( x1, y1, x2, y2 ) {
-
   var dx = x1 - x2, dy = y1 - y2;
-
   return Math.atan2(dy,dx);
 };
 
@@ -492,3 +563,34 @@ function getAngle( x1, y1, x2, y2 ) {
 function toDegrees (angle) {
   return angle * (180 / Math.PI);
 }
+
+function collisionDetection (w1, w2) {
+  var width = Math.ceil($(window).width() * 0.1)
+  return (w1.x < w2.x + width &&  w1.x + width > w2.x &&
+   w1.y < w2.y + width &&  width + w1.y > w2.y)
+}
+
+if (!Object.is) {
+  Object.is = function(x, y) {
+    // SameValue algorithm
+    if (x === y) { // Steps 1-5, 7-10
+      // Steps 6.b-6.e: +0 != -0
+      return x !== 0 || 1 / x === 1 / y;
+    } else {
+     // Step 6.a: NaN == NaN
+     return x !== x && y !== y;
+    }
+  };
+}
+
+// Polyfill for request animation frame
+window.reqAnimFrame = (function(){
+  return  window.requestAnimationFrame   ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame    ||
+    window.oRequestAnimationFrame      ||
+    window.msRequestAnimationFrame     ||
+    function(callback, e){
+      window.setTimeout(callback, 1000 / 60);
+    };
+})();
