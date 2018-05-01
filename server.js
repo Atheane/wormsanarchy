@@ -79,7 +79,7 @@ io.on('connection', function (socket) {
             avatar: player.avatar,
             dateInscription: player.tsp,
             active: true,
-            maxScore: 0
+            score: 0
           });
 
         user.save(function (err) {
@@ -99,7 +99,23 @@ io.on('connection', function (socket) {
 
 
   socket.on('updateWorm', function(worm) {
-    console.log(worm)
+    // if score has changed
+    if (worms[socket.id]) {
+      if (worm.score !== (worms[socket.id]).score) {
+        console.log(worms[socket.id])
+        console.log(worm)
+        User.findOne({pseudo: worm.props.pseudo}, function (err, user) {
+          if (err) {console.log(err.name + ': ' + err.message); }
+          console.log(user, " score updated")
+          user.score = worm.score
+          user.save()
+        })
+      }
+      // if worm no more active
+      if (worm.active !== worms[socket.id].active) {
+
+      }
+    }
     worms[socket.id] = worm;
     socket.broadcast.emit('updateWormToAll', worm);
   });

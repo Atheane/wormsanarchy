@@ -10,7 +10,7 @@ var UserSchema = new Schema(
     pseudo: {type: String, required: true, min: 3, max: 100, unique: true},
     dateInscription: {type: Date},
     active: {type: Boolean, required: true},
-    maxScore: {type: Number}
+    score: {type: Number, required: true}
   }, {collection: 'users'}
 );
 

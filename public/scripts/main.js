@@ -213,7 +213,7 @@ Worm.prototype.shoot = function(canvas, images) {
 }
 
 Weapon.prototype.draw = function(canvas, images) {
-  console.log('weapon draw is called')
+  // console.log('weapon draw is called')
   var context =  canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height)
   context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot.height, this.x, this.y, 38, 38)
@@ -308,9 +308,10 @@ $(document).ready(function() {
         ratioY: 1,
         orientation: 'left',
         events: keyPressed,
-        iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0, dropHolly: 0},
+        iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0},
         life: 100,
-        active: true
+        score: 0,
+        active: true,
       }
       worm.init(props, state)
       // compute ratio x and Y
@@ -442,7 +443,6 @@ function updateWormObject(wormJson) {
     console.log("wormJson in updateWormObject is")
     console.log(wormJson)
   }
-  console.log(worm)
 }
 
 });
@@ -457,35 +457,51 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         // var c = worm.canvas
-        worm.state.x = Math.ceil(game.width * worm.state.ratioX)
-        worm.state.y = Math.ceil(game.height * worm.state.ratioY)
-        worm.walk(worm.canvas, imageContainer)
-        worm.getRelativePosition()
+        worm.state.x = Math.ceil(game.width * worm.state.ratioX);
+        worm.state.y = Math.ceil(game.height * worm.state.ratioY);
+        worm.walk(worm.canvas, imageContainer);
+        worm.getRelativePosition();
         if (worm.state.events.up) {
-          worm.jump(worm.canvas, imageContainer)
+          worm.jump(worm.canvas, imageContainer);
         } else if (worm.state.events.space) {
-          worm.getHolly(worm.canvas, imageContainer)
+          worm.getHolly(worm.canvas, imageContainer);
           if (worm.state.events.mousePosition.x) {
-            worm.targetHolly(worm.canvas, imageContainer)
+            worm.targetHolly(worm.canvas, imageContainer);
             if (worm.state.events.click) {
-              worm.shoot(worm.canvas, imageContainer)
+              worm.shoot(worm.canvas, imageContainer);
             }
           }
         } else  {
-          worm.state.iterations.getHolly = 0
-          worm.state.iterations.targetHolly = 0
-          worm.state.events.mousePosition.x = undefined
-          worm.state.events.click = false
+          worm.state.iterations.getHolly = 0;
+          worm.state.iterations.targetHolly = 0;
+          worm.state.events.mousePosition.x = undefined;
+          worm.state.events.click = false;
         }
         if (worm.weapon) {
           if (worm.weapon.y > worm.state.y + 20) {
-            worm.weapon.active = false
+            worm.weapon.active = false;
           }
           if (worm.weapon.active) {
-            worm.weapon.draw(game.weaponCanvas, imageContainer)
+            worm.weapon.draw(game.weaponCanvas, imageContainer);
+            Object.values(game.worms).forEach( function(wormB) {
+              if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
+                console.log("collision");
+                worm.state.score += 50;
+                wormB.state.life = wormB.state.life - 50;
+                socket.emit('updateWorm', worm);
+                worm.weapon.active = false;
+                if (wormB.state.life <= 0) {
+                  worm.state.score += 100;
+                  socket.emit('updateWorm', worm);
+                  wormB.state.active = false;
+                }
+                console.log(game.worms);
+              }
+            })
           }
         }
       }
+      // console.log(worm)
     });
     game.start1 = timestamp
   }
@@ -546,4 +562,23 @@ function getAngle( x1, y1, x2, y2 ) {
 
 function toDegrees (angle) {
   return angle * (180 / Math.PI);
+}
+
+function collisionDetection (w1, w2) {
+  var width = Math.ceil($(window).width() * 0.02)
+  return (w1.x < w2.x + width &&  w1.x + width > w2.x &&
+   w1.y < w2.y + width &&  width + w1.y > w2.y)
+}
+
+if (!Object.is) {
+  Object.is = function(x, y) {
+    // SameValue algorithm
+    if (x === y) { // Steps 1-5, 7-10
+      // Steps 6.b-6.e: +0 != -0
+      return x !== 0 || 1 / x === 1 / y;
+    } else {
+     // Step 6.a: NaN == NaN
+     return x !== x && y !== y;
+    }
+  };
 }
