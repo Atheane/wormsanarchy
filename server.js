@@ -149,8 +149,19 @@ io.on('connection', function (socket) {
 
   });
 
-  socket.on('disconnect', function(data) {
+  socket.on('disconnect', function() {
      console.log('Got disconnect!');
+     var player = worms[socket.id];
+
+     if (player) {
+       User.findOne({pseudo: player.props.pseudo}, function (err, player) {
+         if (err) {console.log(err.name + ': ' + err.message); }
+         console.log(player, " status updated")
+         player.active = false
+         player.save()
+       });
+     }
+
      socket.emit('user disconnected',  worms[socket.id] );
      socket.broadcast.emit('user disconnected',  worms[socket.id] );
      delete worms[socket.id];
