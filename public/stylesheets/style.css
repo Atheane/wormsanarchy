@@ -76,6 +76,11 @@ h1#index {
   font-weight: lighter;
 }
 
+.red_text {
+  color: red;
+  font-weight: lighter;
+}
+
 #white-title-players {
   padding-top: 1em;
   text-align: center;
@@ -145,8 +150,3 @@ canvas {
 #worm {
   z-index: 0;
 }
-
-
-
-
-

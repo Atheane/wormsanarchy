@@ -53,6 +53,8 @@ var worms = {};
 var keyPressed;
 var InitY;
 
+
+
 io.on('connection', function (socket) {
   // Fetch all active worms
 
@@ -145,6 +147,13 @@ io.on('connection', function (socket) {
       user.save()
     });
 
+  });
+
+  socket.on('disconnect', function(data) {
+     console.log('Got disconnect!');
+     socket.emit('user disconnected',  worms[socket.id] );
+     socket.broadcast.emit('user disconnected',  worms[socket.id] );
+     delete worms[socket.id];
   });
 
 });

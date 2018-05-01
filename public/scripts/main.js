@@ -295,7 +295,7 @@ $(document).ready(function() {
     } else {
       $('.form-container').hide()
       $('.game-container').fadeIn(500)
-      $('ul.players').append('<li>'+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
+      $('ul.players').append(`<li id=li_${game.player.pseudo}>`+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
       /// Drawing Background
 
       var worm = new Worm;
@@ -340,7 +340,14 @@ $(document).ready(function() {
   })
 
   socket.on('newPlayerToAll', function(player){
-    $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
+    $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
+  })
+
+  socket.on('user disconnected', function(data) {
+    console.log(data, "disconnected")
+    if (data) {
+      $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
+    }
   })
 
 
@@ -514,17 +521,7 @@ var gameLoop = function (timestamp) {
   window.reqAnimFrame(gameLoop)
 };
 
-// Polyfill for request animation frame
-window.reqAnimFrame = (function(){
-  return  window.requestAnimationFrame   ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame    ||
-    window.oRequestAnimationFrame      ||
-    window.msRequestAnimationFrame     ||
-    function(callback, e){
-      window.setTimeout(callback, 1000 / 60);
-    };
-})();
+
 
 function setBackground() {
   game.width = Math.ceil($(window).width() * 0.7);
@@ -584,3 +581,15 @@ if (!Object.is) {
     }
   };
 }
+
+// Polyfill for request animation frame
+window.reqAnimFrame = (function(){
+  return  window.requestAnimationFrame   ||
+    window.webkitRequestAnimationFrame ||
+    window.mozRequestAnimationFrame    ||
+    window.oRequestAnimationFrame      ||
+    window.msRequestAnimationFrame     ||
+    function(callback, e){
+      window.setTimeout(callback, 1000 / 60);
+    };
+})();
