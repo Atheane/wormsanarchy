@@ -379,6 +379,7 @@ $(document).ready(function() {
   socket.on('updateScoreToAll', function(data) {
     var shooter = game.worms[data.shooter.props.pseudo]
     shooter.state.score = data.shooter.state.score
+    $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
 
     var shooted = game.worms[data.shooted.props.pseudo]
     shooted.state.life = data.shooted.state.life
