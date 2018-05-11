@@ -329,13 +329,13 @@ $(document).ready(function() {
       game.weaponCanvas = document.getElementById('weapon')
       updateWeaponCanvasDimensions()
 
-      $(window).resize(function() {
-        setBackground()
-        Object.values(game.worms).forEach(function(worm){
-         updateWormCanvasDimensions(worm)
-        })
-        updateWeaponCanvasDimensions()
-      })
+      // $(window).resize(function() {
+      //   setBackground()
+      //   Object.values(game.worms).forEach(function(worm){
+      //    updateWormCanvasDimensions(worm)
+      //   })
+      //   updateWeaponCanvasDimensions()
+      // })
     }
   })
 
@@ -441,6 +441,12 @@ $(document).ready(function() {
     updateWormObject(wormJson)
   })
 
+  socket.on('collision', function(data) {
+    var worm = game.worms[data.shooter]
+    console.log(worm)
+    // worm.weapon.active = false
+  })
+
 function updateWormObject(wormJson) {
   if (wormJson) {
     var worm = new Worm
@@ -472,8 +478,8 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
         // var c = worm.canvas
-        worm.state.x = Math.ceil(game.width * worm.state.ratioX);
-        worm.state.y = Math.ceil(game.height * worm.state.ratioY);
+        // worm.state.x = Math.ceil(game.width * worm.state.ratioX);
+        // worm.state.y = Math.ceil(game.height * worm.state.ratioY);
         worm.walk(worm.canvas, imageContainer);
         worm.getRelativePosition();
         if (worm.state.events.up) {
@@ -494,20 +500,20 @@ var gameLoop = function (timestamp) {
         }
         if (worm.weapon) {
           if (worm.weapon.y > worm.state.y + 20) {
-            worm.weapon.active = false;
+            worm.weapon.active = false
           }
           if (worm.weapon.active) {
             worm.weapon.draw(game.weaponCanvas, imageContainer);
-            Object.values(game.worms).forEach( function(wormB) {
-              if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
-                worm.weapon.active = false;
-                console.log("collision")
-                socket.emit('collision', {
-                  shooter: worm.props.pseudo,
-                  shooted: wormB.props.pseudo
-                });
-              }
-            })
+            // Object.values(game.worms).forEach( function(wormB) {
+            //   if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
+            //     worm.weapon.active = false;
+            //     console.log("collision")
+            //     socket.emit('collision', {
+            //       shooter: worm.props.pseudo,
+            //       shooted: wormB.props.pseudo
+            //     });
+            //   }
+            // })
           }
         }
       }
@@ -564,24 +570,23 @@ function toDegrees (angle) {
   return angle * (180 / Math.PI);
 }
 
-function collisionDetection (w1, w2) {
-  var width = Math.ceil($(window).width() * 0.1)
-  return (w1.x < w2.x + width &&  w1.x + width > w2.x &&
-   w1.y < w2.y + width &&  width + w1.y > w2.y)
-}
+// function collisionDetection (w1, w2) {
+//   return (w1.x < w2.x + 80 &&  w1.x + 80 > w2.x &&
+//    w1.y < w2.y + 80 &&  80 + w1.y > w2.y)
+// }
 
-if (!Object.is) {
-  Object.is = function(x, y) {
-    // SameValue algorithm
-    if (x === y) { // Steps 1-5, 7-10
-      // Steps 6.b-6.e: +0 != -0
-      return x !== 0 || 1 / x === 1 / y;
-    } else {
-     // Step 6.a: NaN == NaN
-     return x !== x && y !== y;
-    }
-  };
-}
+// if (!Object.is) {
+//   Object.is = function(x, y) {
+//     // SameValue algorithm
+//     if (x === y) { // Steps 1-5, 7-10
+//       // Steps 6.b-6.e: +0 != -0
+//       return x !== 0 || 1 / x === 1 / y;
+//     } else {
+//      // Step 6.a: NaN == NaN
+//      return x !== x && y !== y;
+//     }
+//   };
+// }
 
 // Polyfill for request animation frame
 window.reqAnimFrame = (function(){
