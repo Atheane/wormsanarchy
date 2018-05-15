@@ -108,13 +108,13 @@ io.on('connection', function (socket) {
           Object.values(worms).forEach( function(wormB) {
             if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
               worm.weapon.active = false
-              console.log("collision")
-              if (collision && (collision - Date.now()) > 500) {
-                socket.emit('collision', {
+              if (collision && (Date.now() - collision) > 500) {
+                io.emit('collision', {
                   shooter: worm.props.pseudo,
                   shooted: wormB.props.pseudo
                 })
               }
+             collision = Date.now()
             }
           })
         }
@@ -132,8 +132,8 @@ io.on('connection', function (socket) {
   }
 
   function collisionDetection (w1, w2) {
-    return (w1.x < w2.x + 20 &&  w1.x + 20 > w2.x &&
-     w1.y < w2.y + 20 &&  20 + w1.y > w2.y)
+    return (w1.x < w2.x + 80 &&  w1.x + 80 > w2.x &&
+     w1.y < w2.y + 80 &&  80 + w1.y > w2.y)
   }
 
   if (!Object.is) {
