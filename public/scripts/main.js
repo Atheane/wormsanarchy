@@ -444,6 +444,7 @@ $(document).ready(function() {
   socket.on('collision', function(data) {
     var worm = game.worms[data.shooter]
     console.log(worm)
+
     // worm.weapon.active = false
   })
 
