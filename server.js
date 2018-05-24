@@ -106,7 +106,7 @@ io.on('connection', function (socket) {
       if (worm.weapon) {
         if (worm.weapon.active) {
           Object.values(worms).forEach( function(wormB) {
-            if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
+            if (!Object.is(worm, wormB) && collisionDetection(worm.weapon.state, wormB.state)) {
               worm.weapon.active = false
               if (collision && (Date.now() - collision) > 500) {
 
@@ -117,7 +117,7 @@ io.on('connection', function (socket) {
                   wormB.state.active = false
                   worm.state.score += 100
                 }
-                
+
                 io.emit('collision', {
                   shooter: worm,
                   shooted: wormB
@@ -141,8 +141,8 @@ io.on('connection', function (socket) {
   }
 
   function collisionDetection (w1, w2) {
-    return (w1.x < w2.x + 80 &&  w1.x + 80 > w2.x &&
-     w1.y < w2.y + 80 &&  80 + w1.y > w2.y)
+    return (w1.ratioX < w2.ratioX + 80 &&  w1.ratioX + 80 > w2.ratioX &&
+     w1.ratioY < w2.ratioY + 80 &&  80 + w1.ratioY > w2.ratioY)
   }
 
   if (!Object.is) {

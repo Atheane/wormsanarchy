@@ -89,10 +89,8 @@ Background.prototype.draw = function() {
 }
 
 var Weapon = function() {
-  this.init = function(x, y, angle) {
-    this.x = x
-    this.y = y
-    this.angle = angle
+  this.init = function(state) {
+    this.state = state
     this.t = 0
     this.active = true
   }
@@ -208,7 +206,12 @@ Worm.prototype.shoot = function(canvas, images) {
   }
   var weapon = new Weapon
   var angleRadian = getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y);
-  weapon.init(this.state.x, this.state.y, angleRadian)
+  var state = {
+    x: this.state.x,
+    y: this.state.y,
+    angle: angleRadian
+  }
+  weapon.init(state)
   this.weapon = weapon
 }
 
@@ -216,11 +219,16 @@ Weapon.prototype.draw = function(canvas, images) {
   // console.log('weapon draw is called')
   var context =  canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height)
-  context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot.height, this.x, this.y, 38, 38)
+  context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot.height, this.state.x, this.state.y, 38, 38)
   this.t += 0.5
-  this.x -= Math.ceil(20 * Math.cos(this.angle) * this.t)
-  this.y -= Math.ceil(20 * Math.sin(this.angle) * this.t - 0.5 * 8 * this.t * this.t)
+  this.state.x -= Math.ceil(20 * Math.cos(this.state.angle) * this.t)
+  this.state.y -= Math.ceil(20 * Math.sin(this.state.angle) * this.t - 0.5 * 8 * this.t * this.t)
   socket.emit("updateWorm", game.worm)
+}
+
+Weapon.prototype.getRelativePosition = function() {
+  this.state.ratioX = this.state.x / game.width
+  this.state.ratioY = this.state.y / game.height
 }
 
 
@@ -328,6 +336,14 @@ $(document).ready(function() {
 
       game.weaponCanvas = document.getElementById('weapon')
       updateWeaponCanvasDimensions()
+
+      $(window).resize(function() {
+        setBackground()
+        Object.values(game.worms).forEach(function(worm){
+         updateWormCanvasDimensions(worm)
+        })
+        updateWeaponCanvasDimensions()
+      })
     }
   })
 
@@ -380,7 +396,6 @@ $(document).ready(function() {
   $(window).keydown(function(event) {
     if (event.keyCode === 37) {
       keyPressed.left = true
-      // debugger;
       socket.emit('updateWorm', game.worm)
     } else if (event.keyCode === 39) {
       keyPressed.right = true
@@ -429,18 +444,6 @@ $(document).ready(function() {
     socket.emit('updateWorm', game.worm)
   })
 
-  $(window).resize(function() {
-    setBackground()
-    Object.values(game.worms).forEach(function(worm){
-     updateWormCanvasDimensions(worm)
-     var c = worm.canvas
-     worm.state.x = Math.ceil(game.width * worm.state.ratioX);
-     worm.state.y = Math.ceil(game.height * worm.state.ratioY);
-    })
-    updateWeaponCanvasDimensions()
-
-  })
-
   socket.on('updateWormToAll', function(wormJson) {
     updateWormObject(wormJson)
   })
@@ -459,7 +462,7 @@ function updateWormObject(wormJson) {
     if (wormJson.weapon) {
       var weapon = new Weapon
       var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x, worm.state.events.mousePosition.y);
-      weapon.init(wormJson.weapon.x, wormJson.weapon.y, angleRadian)
+      weapon.init({x: wormJson.weapon.x, y: wormJson.weapon.y, angle: angleRadian})
       worm.weapon = weapon
     }
     game.worms[wormJson.props.pseudo] = worm
@@ -480,8 +483,10 @@ var gameLoop = function (timestamp) {
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
-        worm.walk(worm.canvas, imageContainer);
-        worm.getRelativePosition();
+        worm.state.x = Math.ceil(game.width * worm.state.ratioX)
+        worm.state.y = Math.ceil(game.height * worm.state.ratioY)
+        worm.walk(worm.canvas, imageContainer)
+        worm.getRelativePosition()
         if (worm.state.events.up) {
           worm.jump(worm.canvas, imageContainer);
         } else if (worm.state.events.space) {
@@ -499,11 +504,12 @@ var gameLoop = function (timestamp) {
           worm.state.events.click = false;
         }
         if (worm.weapon) {
-          if (worm.weapon.y > worm.state.y + 20) {
+          if (worm.weapon.state.y > worm.state.y + 20) {
             worm.weapon.active = false
           }
           if (worm.weapon.active) {
-            worm.weapon.draw(game.weaponCanvas, imageContainer);
+            // worm.weapon.getRelativePosition()
+            worm.weapon.draw(game.weaponCanvas, imageContainer)
             // Object.values(game.worms).forEach( function(wormB) {
             //   if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
             //     worm.weapon.active = false;
@@ -565,6 +571,16 @@ function getAngle( x1, y1, x2, y2 ) {
   return Math.atan2(dy,dx);
 };
 
+$(window).resize(function() {
+  setBackground()
+  Object.values(game.worms).forEach(function(worm){
+   updateWormCanvasDimensions(worm)
+   var c = worm.canvas
+   worm.state.x = Math.ceil(game.width * worm.state.ratioX);
+   worm.state.y = Math.ceil(game.height * worm.state.ratioY);
+  })
+  updateWeaponCanvasDimensions()
+})
 
 function toDegrees (angle) {
   return angle * (180 / Math.PI);
