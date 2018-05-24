@@ -249,8 +249,6 @@ var game = {}
 game.worms = {}
 game.players = {}
 
-
-
 $(document).ready(function() {
   console.log('DOM ready')
   setBackground()
@@ -337,81 +335,18 @@ $(document).ready(function() {
       game.weaponCanvas = document.getElementById('weapon')
       updateWeaponCanvasDimensions()
 
-      $(window).resize(function() {
-        setBackground()
-        Object.values(game.worms).forEach(function(worm){
-         updateWormCanvasDimensions(worm)
-        })
-        updateWeaponCanvasDimensions()
+      setBackground()
+      Object.values(game.worms).forEach(function(worm){
+       updateWormCanvasDimensions(worm)
       })
+      updateWeaponCanvasDimensions()
     }
+
+
   })
 
-  socket.on('newPlayerToAll', function(player){
-    $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
-  })
-
-  socket.on('user disconnected', function(data) {
-    console.log(data, "disconnected")
-    if (data) {
-      $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
-    }
-  })
-
-
-  /// Drawing Worms
-  socket.on('allActiveWorms', function(worms) {
-    if (worms.length > 0) {
-      worms.forEach(function(wormJson){
-        createWormObject(wormJson)
-      })
-    }
-  })
-
-  socket.on('myWormToAll', function(wormJson) {
-    createWormObject(wormJson)
-  })
-
-  function createWormObject(wormJson) {
-    if (wormJson) {
-      var newWorm = new Worm;
-      newWorm.init(wormJson.props, wormJson.state)
-      newWorm.createCanvas(game.backgroundCanvas, game.width, game.height)
-      game.worms[wormJson.props.pseudo] = newWorm
-    } else {
-      console.log("wormJson in createWormObject is")
-      console.log(wormJson)
-    }
-  }
-
-  socket.on('updateScoreToAll', function(data) {
-    var shooter = game.worms[data.shooter.props.pseudo]
-    shooter.state.score = data.shooter.state.score
-    $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
-
-    var shooted = game.worms[data.shooted.props.pseudo]
-    shooted.state.life = data.shooted.state.life
-  })
-
-  $(window).keydown(function(event) {
-    if (event.keyCode === 37) {
-      keyPressed.left = true
-      socket.emit('updateWorm', game.worm)
-    } else if (event.keyCode === 39) {
-      keyPressed.right = true
-      socket.emit('updateWorm', game.worm)
-    }
-    if (event.keyCode === 38) {
-      keyPressed.up = true
-      socket.emit('updateWorm', game.worm)
-    }
-    if (event.keyCode === 32) {
-      keyPressed.space = true
-      socket.emit('updateWorm', game.worm)
-    }
-  })
-
-  $(window).keyup(function(event) {
+  $(document).keyup(function(event) {
+    console.log(event)
     if (event.keyCode === 37) {
       keyPressed.left = false
       socket.emit('updateWorm', game.worm)
@@ -425,6 +360,24 @@ $(document).ready(function() {
     }
     if (event.keyCode === 32) {
       keyPressed.space = false
+      socket.emit('updateWorm', game.worm)
+    }
+  })
+
+  $(document).keydown(function(event) {
+    if (event.keyCode === 37) {
+      keyPressed.left = true
+      socket.emit('updateWorm', game.worm)
+    } else if (event.keyCode === 39) {
+      keyPressed.right = true
+      socket.emit('updateWorm', game.worm)
+    }
+    if (event.keyCode === 38) {
+      keyPressed.up = true
+      socket.emit('updateWorm', game.worm)
+    }
+    if (event.keyCode === 32) {
+      keyPressed.space = true
       socket.emit('updateWorm', game.worm)
     }
   })
@@ -444,33 +397,15 @@ $(document).ready(function() {
     socket.emit('updateWorm', game.worm)
   })
 
-  socket.on('updateWormToAll', function(wormJson) {
-    updateWormObject(wormJson)
+  $(window).resize(function() {
+    setBackground()
+    Object.values(game.worms).forEach(function(worm){
+     updateWormCanvasDimensions(worm)
+     worm.state.x = Math.ceil(game.width * worm.state.ratioX);
+     worm.state.y = Math.ceil(game.height * worm.state.ratioY);
+    })
+    updateWeaponCanvasDimensions()
   })
-
-  socket.on('collision', function(data) {
-    var worm = game.worms[data.shooter]
-
-  })
-
-function updateWormObject(wormJson) {
-  if (wormJson) {
-    var worm = new Worm
-    worm.init(wormJson.props, wormJson.state)
-    var canvas = document.getElementById(wormJson.props.pseudo)
-    worm.canvas = canvas
-    if (wormJson.weapon) {
-      var weapon = new Weapon
-      var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x, worm.state.events.mousePosition.y);
-      weapon.init({x: wormJson.weapon.x, y: wormJson.weapon.y, angle: angleRadian})
-      worm.weapon = weapon
-    }
-    game.worms[wormJson.props.pseudo] = worm
-  } else {
-    console.log("wormJson in updateWormObject is")
-    console.log(wormJson)
-  }
-}
 
 });
 
@@ -510,16 +445,6 @@ var gameLoop = function (timestamp) {
           if (worm.weapon.active) {
             // worm.weapon.getRelativePosition()
             worm.weapon.draw(game.weaponCanvas, imageContainer)
-            // Object.values(game.worms).forEach( function(wormB) {
-            //   if (!Object.is(worm, wormB) && collisionDetection(worm.weapon, wormB.state)) {
-            //     worm.weapon.active = false;
-            //     console.log("collision")
-            //     socket.emit('collision', {
-            //       shooter: worm.props.pseudo,
-            //       shooted: wormB.props.pseudo
-            //     });
-            //   }
-            // })
           }
         }
       }
@@ -535,7 +460,49 @@ var gameLoop = function (timestamp) {
 };
 
 
+/////////////////////// Sockets
+socket.on('newPlayerToAll', function(player){
+  $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
+})
 
+socket.on('user disconnected', function(data) {
+  console.log(data, "disconnected")
+  if (data) {
+    $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
+  }
+})
+
+socket.on('allActiveWorms', function(worms) {
+  if (worms.length > 0) {
+    worms.forEach(function(wormJson){
+      createWormObject(wormJson)
+    })
+  }
+})
+
+socket.on('myWormToAll', function(wormJson) {
+  createWormObject(wormJson)
+})
+
+socket.on('updateScoreToAll', function(data) {
+  var shooter = game.worms[data.shooter.props.pseudo]
+  shooter.state.score = data.shooter.state.score
+  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
+
+  var shooted = game.worms[data.shooted.props.pseudo]
+  shooted.state.life = data.shooted.state.life
+})
+
+socket.on('updateWormToAll', function(wormJson) {
+  updateWormObject(wormJson)
+})
+
+socket.on('collision', function(data) {
+  var worm = game.worms[data.shooter]
+})
+
+
+///////////////// Helpers
 function setBackground() {
   game.width = Math.ceil($(window).width() * 0.7);
   game.height = Math.ceil($(window).height() * 0.7);
@@ -566,45 +533,47 @@ function updateWeaponCanvasDimensions() {
   weaponCanvas.height = game.height;
 }
 
+function createWormObject(wormJson) {
+  if (wormJson) {
+    var newWorm = new Worm;
+    newWorm.init(wormJson.props, wormJson.state)
+    newWorm.createCanvas(game.backgroundCanvas, game.width, game.height)
+    game.worms[wormJson.props.pseudo] = newWorm
+  } else {
+    console.log("wormJson in createWormObject is")
+    console.log(wormJson)
+  }
+}
+
+function updateWormObject(wormJson) {
+  if (wormJson) {
+    var worm = new Worm
+    worm.init(wormJson.props, wormJson.state)
+    var canvas = document.getElementById(wormJson.props.pseudo)
+    worm.canvas = canvas
+    if (wormJson.weapon) {
+      var weapon = new Weapon
+      var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x, worm.state.events.mousePosition.y);
+      weapon.init({x: wormJson.weapon.x, y: wormJson.weapon.y, angle: angleRadian})
+      worm.weapon = weapon
+    }
+    game.worms[wormJson.props.pseudo] = worm
+  } else {
+    console.log("wormJson in updateWormObject is")
+    console.log(wormJson)
+  }
+}
+
 function getAngle( x1, y1, x2, y2 ) {
   var dx = x1 - x2, dy = y1 - y2;
   return Math.atan2(dy,dx);
 };
 
-$(window).resize(function() {
-  setBackground()
-  Object.values(game.worms).forEach(function(worm){
-   updateWormCanvasDimensions(worm)
-   var c = worm.canvas
-   worm.state.x = Math.ceil(game.width * worm.state.ratioX);
-   worm.state.y = Math.ceil(game.height * worm.state.ratioY);
-  })
-  updateWeaponCanvasDimensions()
-})
-
 function toDegrees (angle) {
   return angle * (180 / Math.PI);
 }
 
-// function collisionDetection (w1, w2) {
-//   return (w1.x < w2.x + 80 &&  w1.x + 80 > w2.x &&
-//    w1.y < w2.y + 80 &&  80 + w1.y > w2.y)
-// }
-
-// if (!Object.is) {
-//   Object.is = function(x, y) {
-//     // SameValue algorithm
-//     if (x === y) { // Steps 1-5, 7-10
-//       // Steps 6.b-6.e: +0 != -0
-//       return x !== 0 || 1 / x === 1 / y;
-//     } else {
-//      // Step 6.a: NaN == NaN
-//      return x !== x && y !== y;
-//     }
-//   };
-// }
-
-// Polyfill for request animation frame
+/// polyfill
 window.reqAnimFrame = (function(){
   return  window.requestAnimationFrame   ||
     window.webkitRequestAnimationFrame ||
