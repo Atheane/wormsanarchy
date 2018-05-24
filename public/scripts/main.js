@@ -328,14 +328,6 @@ $(document).ready(function() {
 
       game.weaponCanvas = document.getElementById('weapon')
       updateWeaponCanvasDimensions()
-
-      // $(window).resize(function() {
-      //   setBackground()
-      //   Object.values(game.worms).forEach(function(worm){
-      //    updateWormCanvasDimensions(worm)
-      //   })
-      //   updateWeaponCanvasDimensions()
-      // })
     }
   })
 
@@ -437,13 +429,25 @@ $(document).ready(function() {
     socket.emit('updateWorm', game.worm)
   })
 
+  $(window).resize(function() {
+    setBackground()
+    Object.values(game.worms).forEach(function(worm){
+     updateWormCanvasDimensions(worm)
+     var c = worm.canvas
+     worm.state.x = Math.ceil(game.width * worm.state.ratioX);
+     worm.state.y = Math.ceil(game.height * worm.state.ratioY);
+    })
+    updateWeaponCanvasDimensions()
+
+  })
+
   socket.on('updateWormToAll', function(wormJson) {
     updateWormObject(wormJson)
   })
 
   socket.on('collision', function(data) {
     var worm = game.worms[data.shooter]
-    
+
   })
 
 function updateWormObject(wormJson) {
@@ -476,9 +480,6 @@ var gameLoop = function (timestamp) {
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
-        // var c = worm.canvas
-        // worm.state.x = Math.ceil(game.width * worm.state.ratioX);
-        // worm.state.y = Math.ceil(game.height * worm.state.ratioY);
         worm.walk(worm.canvas, imageContainer);
         worm.getRelativePosition();
         if (worm.state.events.up) {
