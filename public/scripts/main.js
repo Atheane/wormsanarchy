@@ -329,13 +329,13 @@ $(document).ready(function() {
       game.weaponCanvas = document.getElementById('weapon')
       updateWeaponCanvasDimensions()
 
-      // $(window).resize(function() {
-      //   setBackground()
-      //   Object.values(game.worms).forEach(function(worm){
-      //    updateWormCanvasDimensions(worm)
-      //   })
-      //   updateWeaponCanvasDimensions()
-      // })
+      $(window).resize(function() {
+        setBackground()
+        Object.values(game.worms).forEach(function(worm){
+         updateWormCanvasDimensions(worm)
+        })
+        updateWeaponCanvasDimensions()
+      })
     }
   })
 
@@ -476,9 +476,8 @@ var gameLoop = function (timestamp) {
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
-        // var c = worm.canvas
-        // worm.state.x = Math.ceil(game.width * worm.state.ratioX);
-        // worm.state.y = Math.ceil(game.height * worm.state.ratioY);
+        worm.state.x = Math.ceil(game.width * worm.state.ratioX);
+        worm.state.y = Math.ceil(game.height * worm.state.ratioY);
         worm.walk(worm.canvas, imageContainer);
         worm.getRelativePosition();
         if (worm.state.events.up) {
