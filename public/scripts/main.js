@@ -385,7 +385,7 @@ $(document).ready(function() {
     shooted.state.life = data.shooted.state.life
   })
 
-  $(window).keydown(function(event) {
+  $(document).keydown(function(event) {
     if (event.keyCode === 37) {
       keyPressed.left = true
       // debugger;
@@ -404,7 +404,7 @@ $(document).ready(function() {
     }
   })
 
-  $(window).keyup(function(event) {
+  $(document).keyup(function(event) {
     if (event.keyCode === 37) {
       keyPressed.left = false
       socket.emit('updateWorm', game.worm)
@@ -443,7 +443,7 @@ $(document).ready(function() {
 
   socket.on('collision', function(data) {
     var worm = game.worms[data.shooter]
-    
+
   })
 
 function updateWormObject(wormJson) {
