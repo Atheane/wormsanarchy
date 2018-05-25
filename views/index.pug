@@ -1,36 +1,37 @@
 extends layout
 block content
 
-  h1#index(style='color: #fff; padding-top: 10px; font-size: 50px; text-shadow:1px 1px 1px black')=title
-  div(class='game-container')
-    canvas#background
-      | Your browser does not support canvas :(, please try with another one!
-    canvas#weapon
-      | Your browser does not support canvas :(, please try with another one!
-    div(class='form-container')
-      h3#alert
-      form(method='post' action='' style='padding-top: 15px;' id="form")
-        h3 Choose an Avatar
-        br
-        .avatar-selector
-          input#soldier(checked='checked', type='radio', name='avatar', value='soldier')
-          label.avatar-card.soldier(for='soldier')
-          input#tarzan(type='radio', name='avatar', value='tarzan')
-          label.avatar-card.tarzan(for='tarzan')
-          input#dumb(type='radio', name='avatar', value='dumb')
-          label.avatar-card.dumb(for='dumb')
-          input#cool(type='radio', name='avatar', value='cool')
-          label.avatar-card.cool(for='cool')
-        br
-        br
-        h3 Choose a pseudo
-        br
-        .pseudo-selector
-          input#pseudo(type='text', name='pseudo')
-          input#button-form(type='submit' class='btn-primary' value='Go !')
-  div(class='name-container')
-    p#white-title-players(class='players') DASHBOARD
-    hr
-    ul(class='players')
+  div(class='game')
+    div(class='game-container')
+      h1#index(style='color: #fff; padding-top: 10px; font-size: 50px; text-shadow:1px 1px 1px black')=title
+      canvas#background
+        | Your browser does not support canvas :(, please try with another one!
+      canvas#weapon
+        | Your browser does not support canvas :(, please try with another one!
+      div(class='form-container')
+        h3#alert
+        form(method='post' action='' style='padding-top: 15px;' id="form")
+          h3 Choose an Avatar
+          br
+          .avatar-selector
+            input#soldier(checked='checked', type='radio', name='avatar', value='soldier')
+            label.avatar-card.soldier(for='soldier')
+            input#tarzan(type='radio', name='avatar', value='tarzan')
+            label.avatar-card.tarzan(for='tarzan')
+            input#dumb(type='radio', name='avatar', value='dumb')
+            label.avatar-card.dumb(for='dumb')
+            input#cool(type='radio', name='avatar', value='cool')
+            label.avatar-card.cool(for='cool')
+          br
+          br
+          h3 Choose a pseudo
+          br
+          .pseudo-selector
+            input#pseudo(type='text', name='pseudo')
+            input#button-form(type='submit' class='btn-primary' value='Go !')
+    div(class='name-container')
+      p#white-title-players(class='players') DASHBOARD
+      hr
+      ul(class='players')
 
   script(src='scripts/main.js')

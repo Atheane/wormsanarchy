@@ -11,27 +11,36 @@ a {
 
 h1#index {
   position: absolute;
-  top: 5%;
-  left: 37%;
+  top: -70px;
+  left: 50%;
+  margin-left:-178px;
+  width: 356px;
   text-align: center;
 }
 
 .center {
   text-align: center;
 }
+.game {
+  width:1067px;
+  position: relative;
+  padding-top: 24px;
+  margin: 0 auto;
+}
 
 .game-container {
- position: absolute;
- top: 15%;
- left: 8%;
- width: 70%;
- height: 70%;
+ width: 850px;
+ height: 520px;
 /* background-image: url('../images/snow.png');
  background-size: 110%;
  background-repeat: no-repeat;*/
  border: solid white;
  border-radius: 15px;
  box-shadow: 1px 1px 1px black;
+ display:inline-block;
+ vertical-align: top;
+ margin-right: 16px;
+ position: relative;
 }
 
 .form-container {
@@ -51,15 +60,13 @@ h1#index {
 }
 
 .name-container {
-  position: absolute;
-  top: 10%;
-  right: 50px;
-  width : 17%;
-  height: 80%;
+  width : 200px;
+  height: 520px;;
   border: solid white 2px;
   background-color: rgba(91, 135, 247, 0.5);
   border-radius: 5px;
   overflow: scroll;
+  display:inline-block;
 }
 
 .players {
@@ -117,7 +124,7 @@ hr {
     background-size:100%;
     background-repeat:no-repeat;
     display:inline-block;
-    width:100px;height:100px;
+    width:50px;height:50px;
     -webkit-transition: all 100ms ease-in;
        -moz-transition: all 100ms ease-in;
             transition: all 100ms ease-in;
