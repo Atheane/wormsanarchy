@@ -117,7 +117,7 @@ io.on('connection', function (socket) {
                   wormB.state.active = false
                   worm.state.score += 100
                 }
-                
+
                 io.emit('collision', {
                   shooter: worm,
                   shooted: wormB
@@ -199,7 +199,7 @@ io.on('connection', function (socket) {
      console.log('Got disconnect!');
      var player = worms[socket.id];
 
-     if (player) {
+     if (player && player !== null) {
        User.findOne({pseudo: player.props.pseudo}, function (err, player) {
          if (err) {console.log(err.name + ': ' + err.message); }
          console.log(player, " status updated")

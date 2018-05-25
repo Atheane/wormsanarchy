@@ -150,3 +150,7 @@ canvas {
 #worm {
   z-index: 0;
 }
+
+.form-container {
+  z-index: 2;
+}
