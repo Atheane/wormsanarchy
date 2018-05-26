@@ -10,7 +10,7 @@ a {
 }
 
 h1#index {
-  margin: 20px auto;
+  margin: -64px auto;
   text-align: center;
 }
 
@@ -20,7 +20,7 @@ h1#index {
 
 .game {
   position: relative;
-  margin: 20px auto;
+  margin: 32px auto;
   display:flex;
   justify-content: center;
   width: 1462px;
@@ -30,7 +30,7 @@ h1#index {
 .game-container {
   width: 70%;
   height: 100%;
-  margin: auto;
+  margin: 32px auto;
   border: solid white;
   border-radius: 15px;
   box-shadow: 1px 1px 1px black;
@@ -42,7 +42,7 @@ h1#index {
   padding: 2em;
   width: 50%;
   height: 60%;
-  margin: 50px auto;
+  margin: 186px auto;
   border: solid white 2px;
   background-color: #fff;
   border-radius: 5px;
