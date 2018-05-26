@@ -97,7 +97,7 @@ var Worm = function() {
 
 Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
   var newSiblingCanvas = document.createElement("canvas")
-  var gameContainer = document.getElementsByClassName('game-container')[0]
+  var gameContainer = document.getElementsByClassName('game-container')[1]
   // gameContainer.appendChild(newWormCanvas);
   siblingCanvas.parentNode.insertBefore(newSiblingCanvas, siblingCanvas.nextSibling)
   newSiblingCanvas.setAttribute('id', this.props.pseudo)
@@ -305,6 +305,12 @@ $(document).ready(function() {
         })
         updateWeaponCanvasDimensions()
       })
+
+      socket.on('myWormToAll', function(wormJson) {
+        debugger;
+        createWormObject(wormJson)
+      })
+
     }
   })
 
@@ -329,9 +335,7 @@ $(document).ready(function() {
     }
   })
 
-  socket.on('myWormToAll', function(wormJson) {
-    createWormObject(wormJson)
-  })
+
 
   function createWormObject(wormJson) {
     if (wormJson) {

@@ -71,7 +71,7 @@ io.on('connection', function (socket) {
     User.findOne({pseudo: player.pseudo}, function (err, user_exists) {
       if (err) {console.log(err.name + ': ' + err.message); }
       // Successful, so emit
-      var valid = (!user_exists) ? true : false;
+      var valid = (!user_exists);
       socket.emit('isValid?', valid);
 
       if (valid) {
