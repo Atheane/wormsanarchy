@@ -7,8 +7,6 @@ var imageContainer = {};
 imageContainer.background = new Image;
 imageContainer.walkLeft = new Image;
 imageContainer.walkRight = new Image;
-imageContainer.jumpLeft = new Image;
-imageContainer.jumpRight = new Image;
 imageContainer.getHollyLeft = new Image;
 imageContainer.getHollyRight = new Image;
 imageContainer.targetHollyLeft = new Image;
@@ -33,18 +31,6 @@ var imageLoading = function() {
   });
   imageContainer.walkRight.src = 'images/walk_right.png';
   imageContainer.walkRight.id='walkRight';
-
-  $(imageContainer.jumpLeft).on('load', function() {
-    console.log('jumpLeft Image Loaded');
-  });
-  imageContainer.jumpLeft.src = 'images/jump_left.png';
-  imageContainer.jumpLeft.id='jumpLeft';
-
-  $(imageContainer.jumpRight).on('load', function() {
-    console.log('jumpRight Image Loaded');
-  });
-  imageContainer.jumpRight.src = 'images/jump_right.png';
-  imageContainer.jumpRight.id='jumpRight';
 
   $(imageContainer.getHollyLeft).on('load', function() {
     console.log('getHollyLeft Image Loaded');
@@ -139,21 +125,6 @@ Worm.prototype.walk = function(canvas, images) {
   }
 }
 
-Worm.prototype.jump = function(canvas, images) {
-  var context =  canvas.getContext('2d')
-  context.clearRect(0, 0, canvas.width, canvas.height)
-  if ( this.state.iterations.jump < 5) {
-    this.state.iterations.jump += 1
-  } else {
-    this.state.events.up = false
-    this.state.iterations.jump = 0
-  }
-  if(this.state.orientation === 'left') {
-    context.drawImage(images.jumpLeft, 0, images.jumpLeft.height * this.state.iterations.jump/6, images.jumpLeft.width, images.jumpLeft.height/6, this.state.x, this.state.y, 60, 60)
-  } else {
-    context.drawImage(images.jumpRight, 0, images.jumpRight.height * this.state.iterations.jump/6, images.jumpRight.width, images.jumpRight.height/6, this.state.x, this.state.y, 60, 60)
-  }
-};
 
 Worm.prototype.getHolly = function(canvas, images) {
   var context =  canvas.getContext('2d');
@@ -314,7 +285,7 @@ $(document).ready(function() {
         ratioY: 1,
         orientation: 'left',
         events: keyPressed,
-        iterations: {walk: 0, jump: 0, getHolly: 0, targetHolly: 0},
+        iterations: {walk: 0, getHolly: 0, targetHolly: 0},
         life: 100,
         score: 0,
         active: true,
@@ -422,9 +393,7 @@ var gameLoop = function (timestamp) {
         worm.state.y = Math.ceil(game.height * worm.state.ratioY)
         worm.walk(worm.canvas, imageContainer)
         worm.getRelativePosition()
-        if (worm.state.events.up) {
-          worm.jump(worm.canvas, imageContainer);
-        } else if (worm.state.events.space) {
+        if (worm.state.events.space) {
           worm.getHolly(worm.canvas, imageContainer);
           if (worm.state.events.mousePosition.x) {
             worm.targetHolly(worm.canvas, imageContainer);
