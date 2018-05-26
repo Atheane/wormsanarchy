@@ -162,11 +162,6 @@ Worm.prototype.targetHolly = function(canvas, images) {
   }
 }
 
-Worm.prototype.getRelativePosition = function() {
-  this.state.ratioX = this.state.x / game.width
-  this.state.ratioY = this.state.y / game.height
-}
-
 Worm.prototype.shoot = function(canvas, images) {
   var context =  canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height)
@@ -196,12 +191,6 @@ Weapon.prototype.draw = function(canvas, images) {
   this.state.y -= Math.ceil(20 * Math.sin(this.state.angle) * this.t - 0.5 * 8 * this.t * this.t)
   socket.emit("updateWorm", game.worm)
 }
-
-Weapon.prototype.getRelativePosition = function() {
-  this.state.ratioX = this.state.x / game.width
-  this.state.ratioY = this.state.y / game.height
-}
-
 
 /// KeyPressed object to stock player inputs
 var keyPressed = {
@@ -281,8 +270,6 @@ $(document).ready(function() {
       }
       var state = { x: Math.floor(Math.random() * (game.width - 150 + 1)) + 100,
         y: Math.ceil(game.height*3.9/5),
-        ratioX: 1,
-        ratioY: 1,
         orientation: 'left',
         events: keyPressed,
         iterations: {walk: 0, getHolly: 0, targetHolly: 0},
@@ -291,8 +278,6 @@ $(document).ready(function() {
         active: true,
       }
       worm.init(props, state)
-      // compute ratio x and Y
-      worm.getRelativePosition()
       // console.log("compute ratio x and Y")
       socket.emit('createWorm', worm)
 
@@ -313,20 +298,18 @@ $(document).ready(function() {
       updateWeaponCanvasDimensions()
     }
 
+    socket.on('myWormToAll', function(wormJson) {
+      createWormObject(wormJson)
+    })
 
   })
 
   $(document).keyup(function(event) {
-    console.log(event)
     if (event.keyCode === 37) {
       keyPressed.left = false
       socket.emit('updateWorm', game.worm)
     } else if (event.keyCode === 39) {
       keyPressed.right = false
-      socket.emit('updateWorm', game.worm)
-    }
-    if (event.keyCode === 38) {
-      keyPressed.up = false
       socket.emit('updateWorm', game.worm)
     }
     if (event.keyCode === 32) {
@@ -341,10 +324,6 @@ $(document).ready(function() {
       socket.emit('updateWorm', game.worm)
     } else if (event.keyCode === 39) {
       keyPressed.right = true
-      socket.emit('updateWorm', game.worm)
-    }
-    if (event.keyCode === 38) {
-      keyPressed.up = true
       socket.emit('updateWorm', game.worm)
     }
     if (event.keyCode === 32) {
@@ -368,16 +347,6 @@ $(document).ready(function() {
     socket.emit('updateWorm', game.worm)
   })
 
-  $(window).resize(function() {
-    setBackground()
-    Object.values(game.worms).forEach(function(worm){
-     updateWormCanvasDimensions(worm)
-     worm.state.x = Math.ceil(game.width * worm.state.ratioX);
-     worm.state.y = Math.ceil(game.height * worm.state.ratioY);
-    })
-    updateWeaponCanvasDimensions()
-  })
-
 });
 
 game.start1
@@ -389,10 +358,7 @@ var gameLoop = function (timestamp) {
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
       if (worm) {
-        worm.state.x = Math.ceil(game.width * worm.state.ratioX)
-        worm.state.y = Math.ceil(game.height * worm.state.ratioY)
         worm.walk(worm.canvas, imageContainer)
-        worm.getRelativePosition()
         if (worm.state.events.space) {
           worm.getHolly(worm.canvas, imageContainer);
           if (worm.state.events.mousePosition.x) {
@@ -412,7 +378,6 @@ var gameLoop = function (timestamp) {
             worm.weapon.active = false
           }
           if (worm.weapon.active) {
-            // worm.weapon.getRelativePosition()
             worm.weapon.draw(game.weaponCanvas, imageContainer)
           }
         }
@@ -434,12 +399,12 @@ socket.on('newPlayerToAll', function(player){
   $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
 })
 
-socket.on('user disconnected', function(data) {
-  console.log(data, "disconnected")
-  if (data) {
-    $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
-  }
-})
+// socket.on('user disconnected', function(data) {
+//   console.log(data, "disconnected")
+//   if (data) {
+//     $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
+//   }
+// })
 
 socket.on('allActiveWorms', function(worms) {
   if (worms.length > 0) {
@@ -449,32 +414,28 @@ socket.on('allActiveWorms', function(worms) {
   }
 })
 
-socket.on('myWormToAll', function(wormJson) {
-  createWormObject(wormJson)
-})
-
-socket.on('updateScoreToAll', function(data) {
-  var shooter = game.worms[data.shooter.props.pseudo]
-  shooter.state.score = data.shooter.state.score
-  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
-
-  var shooted = game.worms[data.shooted.props.pseudo]
-  shooted.state.life = data.shooted.state.life
-})
+// socket.on('updateScoreToAll', function(data) {
+//   var shooter = game.worms[data.shooter.props.pseudo]
+//   shooter.state.score = data.shooter.state.score
+//   $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
+//
+//   var shooted = game.worms[data.shooted.props.pseudo]
+//   shooted.state.life = data.shooted.state.life
+// })
 
 socket.on('updateWormToAll', function(wormJson) {
   updateWormObject(wormJson)
 })
 
-socket.on('collision', function(data) {
-  var worm = game.worms[data.shooter]
-})
+// socket.on('collision', function(data) {
+//   var worm = game.worms[data.shooter]
+// })
 
 
 ///////////////// Helpers
 function setBackground() {
-  game.width = Math.ceil($(window).width() * 0.7);
-  game.height = Math.ceil($(window).height() * 0.7);
+  game.width = 1024;
+  game.height = 520;
   game.backgroundCanvas = document.getElementById('background');
   // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
   game.backgroundCanvas.width = game.width;
@@ -488,16 +449,12 @@ function setBackground() {
 function updateWormCanvasDimensions(worm) {
   var pseudo = worm.props.pseudo
   var c = document.getElementById(pseudo)
-  game.width = Math.ceil($(window).width() * 0.7);
-  game.height = Math.ceil($(window).height() * 0.7);
   c.width = game.width;
   c.height = game.height;
 }
 
 function updateWeaponCanvasDimensions() {
   var weaponCanvas = document.getElementById("weapon")
-  game.width = Math.ceil($(window).width() * 0.7);
-  game.height = Math.ceil($(window).height() * 0.7);
   weaponCanvas.width = game.width;
   weaponCanvas.height = game.height;
 }

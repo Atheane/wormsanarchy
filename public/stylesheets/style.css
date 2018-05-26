@@ -135,16 +135,10 @@ hr {
 
 canvas {
   position: absolute;
+  top: 36px;
+  left: 60px;
 }
 
 #background {
   z-index: -2;
-}
-
-#main {
-  z-index: -1;
-}
-
-#worm {
-  z-index: 0;
 }
