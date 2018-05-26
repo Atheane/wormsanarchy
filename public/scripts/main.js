@@ -264,7 +264,7 @@ $(document).ready(function() {
       $('ul.players').append(`<li id=li_${game.player.pseudo}>`+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
       /// Drawing Background
 
-      var worm = new Worm;
+      var worm = new Worm
       var props = {
         pseudo: game.player.pseudo
       }
@@ -281,6 +281,8 @@ $(document).ready(function() {
       // console.log("compute ratio x and Y")
       socket.emit('createWorm', worm)
 
+      setBackground()
+
       worm.createCanvas(game.backgroundCanvas, game.width, game.height)
 
       game.worms[worm.props.pseudo] = worm
@@ -291,11 +293,9 @@ $(document).ready(function() {
       game.weaponCanvas = document.getElementById('weapon')
       updateWeaponCanvasDimensions()
 
-      setBackground()
       Object.values(game.worms).forEach(function(worm){
-       updateWormCanvasDimensions(worm)
+        updateWormCanvasDimensions(worm)
       })
-      updateWeaponCanvasDimensions()
     }
 
     socket.on('myWormToAll', function(wormJson) {
