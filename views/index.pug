@@ -9,9 +9,8 @@ block content
       canvas#weapon
         | Your browser does not support canvas :(, please try with another one!
       div(class='form-container')
-        h3#alert
-        form(method='post' action='' style='padding-top: 15px;' id="form")
-          span(style='font-size: 16px; font-weight: bold') Choose an Avatar
+        form(method='post' action='' id="form")
+          span(style='font-size: 16px; font-weight: bold;') Choose an Avatar
           br
           br
           .avatar-selector
@@ -29,6 +28,8 @@ block content
           .pseudo-selector
             input#pseudo(type='text', name='pseudo')
             input#button-form(type='submit' class='btn-primary' value='Go !')
+          h3#alert(style='font-size: 16px; font-weight: light; color: red; margin-top: 15px')
+
     div(class='name-container')
       p#white-title-players(class='players') DASHBOARD
       hr
