@@ -429,9 +429,11 @@ socket.on('updateWormToAll', function(wormJson) {
   updateWormObject(wormJson)
 })
 
-// socket.on('collision', function(data) {
-//   var worm = game.worms[data.shooter]
-// })
+socket.on('collision', function(data) {
+  var shooter = game.worms[data.shooter]
+  var shooted = game.worms[data.shooted]
+  console.log(shooter.props.pseudo + "shooted" + shooted.props.pseudo)
+})
 
 
 ///////////////// Helpers
