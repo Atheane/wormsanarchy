@@ -359,7 +359,7 @@ var gameLoop = function (timestamp) {
   if (!game.start2) { game.start2 = timestamp }
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
-      if (worm) {
+      if (worm && worm.state.active) {
         worm.walk(worm.canvas, imageContainer)
         if (worm.state.events.space) {
           worm.getHolly(worm.canvas, imageContainer);
@@ -401,12 +401,15 @@ socket.on('newPlayerToAll', function(player){
   $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
 })
 
-// socket.on('user disconnected', function(data) {
-//   console.log(data, "disconnected")
-//   if (data) {
-//     $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
-//   }
-// })
+socket.on('userDisconnected', function(data) {
+  console.log(data, "disconnected")
+  if (data) {
+    $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
+    var worm = game.worms[data.props.pseudo]
+    worm.state.active = false
+    worm.canvas.remove()
+  }
+})
 
 socket.on('allActiveWorms', function(worms) {
   if (worms.length > 0) {

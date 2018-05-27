@@ -181,9 +181,8 @@ io.on('connection', function (socket) {
        });
      }
 
-     socket.emit('user disconnected',  worms[socket.id] );
-     socket.broadcast.emit('user disconnected',  worms[socket.id] );
-     delete worms[socket.id];
+     io.emit('userDisconnected',  worms[socket.id] )
+     delete worms[socket.id]
   });
 
 });
