@@ -100,45 +100,55 @@ io.on('connection', function (socket) {
     socket.broadcast.emit('myWormToAll', worm);
   });
 
-  socket.on('updateWorm', function(worm) {
-    if (worm) {
-      worms[socket.id] = worm;
-      if (worm.weapon) {
-        if (worm.weapon.active) {
-          Object.values(worms).forEach( function(wormB) {
-            if (!Object.is(worm, wormB) && collisionDetection(worm.weapon.state, wormB.state)) {
-              worm.weapon.active = false
+  socket.on('updateWorm', function(shooter) {
+    if (shooter) {
+      worms[socket.id] = shooter;
+      if (shooter.weapon) {
+        if (shooter.weapon.active) {
+          Object.values(worms).forEach( function(shooted) {
+            if (!Object.is(shooter, shooted) && collisionDetection(shooter.weapon.state, shooted.state)) {
+              shooter.weapon.active = false
               if (collision && (Date.now() - collision) > 500) {
                 console.log("collision")
-                worm.state.score += 50
-                wormB.state.life -= 50
+                shooter.state.score += 50
+                shooted.state.life -= 50
 
-                if (wormB.state.life <= 0) {
-                  wormB.state.active = false
-                  worm.state.score += 100
+                if (shooted.state.life <= 0) {
+                  shooted.state.active = false
+
+                  // update the shooted status
+                  User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
+                    if (err) {console.log(err.name + ': ' + err.message) }
+                    console.log(user, " status updated")
+                    user.active = shooted.state.active
+                    user.save()
+                  })
+
+                  shooter.state.score += 100
                 }
 
                 io.emit('collision', {
-                  shooter: worm,
-                  shooted: wormB
+                  shooter: shooter,
+                  shooted: shooted
                 })
+
+                // update the shooter score
+                User.findOne({pseudo: shooter.props.pseudo}, function (err, user) {
+                  if (err) {console.log(err.name + ': ' + err.message) }
+                  console.log(user, " score updated")
+                  user.score = shooter.state.score
+                  user.save()
+                })
+
               }
              collision = Date.now()
             }
           })
         }
       }
-      socket.broadcast.emit('updateWormToAll', worm)
+      socket.broadcast.emit('updateWormToAll', shooter)
     }
   })
-
-  function search(pseudo, worms){
-    for (var i=0; i < worms.length; i++) {
-      if (worms[i].props.pseudo === pseudo) {
-        return worms[i];
-      }
-    }
-  }
 
   function collisionDetection (w1, w2) {
     return (w1.x < w2.x + 80 &&  w1.x + 80 > w2.x &&
@@ -157,43 +167,6 @@ io.on('connection', function (socket) {
       }
     };
   }
-
-
-  socket.on('collision', function(data) {
-    console.log("collision")
-    var shooter = search(data.shooter, Object.values(worms))
-    var shooted = search(data.shooted, Object.values(worms))
-
-    shooter.state.score += 50
-    shooted.state.life -= 50
-
-    if (shooted.state.life <= 0) {
-      shooted.state.active = false
-      shooter.state.score += 100
-    }
-
-    socket.broadcast.emit('updateScoreToAll', {
-      shooter: shooter,
-      shooted: shooted
-    })
-
-    // update the shooter score
-    User.findOne({pseudo: shooter.props.pseudo}, function (err, user) {
-      if (err) {console.log(err.name + ': ' + err.message); }
-      console.log(user, " score updated")
-      user.score = shooter.state.score
-      user.save()
-    });
-
-    // update the shooted status
-    User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
-      if (err) {console.log(err.name + ': ' + err.message); }
-      console.log(user, " status updated")
-      user.active = shooted.state.active
-      user.save()
-    });
-
-  });
 
   socket.on('disconnect', function() {
      console.log('Got disconnect!');
@@ -214,8 +187,6 @@ io.on('connection', function (socket) {
   });
 
 });
-
-
 
 /// Handle 404
 app.use(function(req, res) {
