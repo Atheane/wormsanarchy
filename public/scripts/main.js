@@ -211,6 +211,8 @@ game.players = {}
 
 $(document).ready(function() {
   console.log('DOM ready')
+  game.width = 1024
+  game.height = 520
   setBackground()
   game.background = new Background
 
@@ -434,8 +436,6 @@ socket.on('updateWormToAll', function(wormJson) {
 
 ///////////////// Helpers
 function setBackground() {
-  game.width = 1024;
-  game.height = 520;
   game.backgroundCanvas = document.getElementById('background');
   // https://stackoverflow.com/questions/4938346/canvas-width-and-height-in-html5
   game.backgroundCanvas.width = game.width;
