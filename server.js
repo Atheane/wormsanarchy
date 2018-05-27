@@ -119,8 +119,8 @@ io.on('connection', function (socket) {
                 }
 
                 io.emit('collision', {
-                  shooter: worm.props.pseudo,
-                  shooted: wormB.props.pseudo
+                  shooter: worm,
+                  shooted: wormB
                 })
               }
              collision = Date.now()

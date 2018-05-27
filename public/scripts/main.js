@@ -416,23 +416,19 @@ socket.on('allActiveWorms', function(worms) {
   }
 })
 
-// socket.on('updateScoreToAll', function(data) {
-//   var shooter = game.worms[data.shooter.props.pseudo]
-//   shooter.state.score = data.shooter.state.score
-//   $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
-//
-//   var shooted = game.worms[data.shooted.props.pseudo]
-//   shooted.state.life = data.shooted.state.life
-// })
-
 socket.on('updateWormToAll', function(wormJson) {
   updateWormObject(wormJson)
 })
 
 socket.on('collision', function(data) {
-  var shooter = game.worms[data.shooter]
-  var shooted = game.worms[data.shooted]
-  console.log(shooter.props.pseudo + "shooted" + shooted.props.pseudo)
+  var shooter = game.worms[data.shooter.props.pseudo]
+  var shooted = game.worms[data.shooted.props.pseudo]
+  shooter.state.score = data.shooter.state.score
+  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
+
+  var shooted = game.worms[data.shooted.props.pseudo]
+  shooted.state.life = data.shooted.state.life
+  console.log(shooted.props.pseudo + " life " + shooted.state.life )
 })
 
 
