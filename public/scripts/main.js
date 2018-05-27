@@ -171,7 +171,7 @@ Worm.prototype.shoot = function(canvas, images) {
     context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60)
   }
   var weapon = new Weapon
-  var angleRadian = getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y);
+  var angleRadian = getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y)
   var state = {
     x: this.state.x,
     y: this.state.y,
@@ -480,7 +480,7 @@ function updateWormObject(wormJson) {
     if (wormJson.weapon) {
       var weapon = new Weapon
       var angleRadian = getAngle(worm.state.x, worm.state.y, worm.state.events.mousePosition.x, worm.state.events.mousePosition.y);
-      weapon.init({x: wormJson.weapon.x, y: wormJson.weapon.y, angle: angleRadian})
+      weapon.init({x: wormJson.weapon.state.x, y: wormJson.weapon.state.y, angle: angleRadian})
       worm.weapon = weapon
     }
     game.worms[wormJson.props.pseudo] = worm
