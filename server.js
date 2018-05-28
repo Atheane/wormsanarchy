@@ -60,9 +60,9 @@ io.on('connection', function (socket) {
   // Fetch all active worms
 
   // Fetch all active players
-  User.find({active: true}, function(err, list_users) {
+  User.find({active: true}, function(err, players) {
     if (err) {console.log(err.name + ': ' + err.message); }
-    socket.emit('allActivePlayers', list_users);
+    socket.emit('allActivePlayers', players);
   });
 
   socket.on('newPlayer', function (player) {
@@ -172,18 +172,29 @@ io.on('connection', function (socket) {
      console.log('Got disconnect!');
      var player = worms[socket.id];
 
-     if (player) {
+     if (player && player !== null) {
+       io.emit('userDisconnected',  player.props.pseudo )
        User.findOne({pseudo: player.props.pseudo}, function (err, player) {
          if (err) {console.log(err.name + ': ' + err.message); }
-         console.log(player, " status updated")
          player.active = false
          player.save()
        });
      }
 
-     io.emit('userDisconnected',  worms[socket.id] )
      delete worms[socket.id]
   });
+
+  socket.on('reload',function(){
+    var player = worms[socket.id];
+    if (player && player !== null) {
+      io.emit('userDisconnected',  player.props.pseudo )
+      User.findOne({pseudo: player.props.pseudo}, function (err, player) {
+        if (err) {console.log(err.name + ': ' + err.message); }
+        player.active = false
+        player.save()
+      });
+    }
+  })
 
 });
 

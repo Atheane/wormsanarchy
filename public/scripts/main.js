@@ -223,7 +223,7 @@ $(document).ready(function() {
   socket.on('allActivePlayers', function(players) {
     $('ul.players').html('')
     players.forEach(function(player) {
-      $('ul.players').append('<li>'+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
+      $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
       game.players[player.pseudo] = player
     })
   })
@@ -352,7 +352,11 @@ $(document).ready(function() {
     socket.emit('updateWorm', game.worm)
   })
 
-});
+  $(window).on('load',function(){
+    socket.emit('reload')
+  })
+
+})
 
 game.start1
 game.start2
@@ -404,13 +408,15 @@ socket.on('newPlayerToAll', function(player){
   $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
 })
 
-socket.on('userDisconnected', function(data) {
-  console.log(data, "disconnected")
-  if (data) {
-    $(`#li_${data.props.pseudo}`).html(`<li id=li_${data.props.pseudo}>`+ data.props.pseudo +'<span class="red_text"> is disconnected <span> </li>')
-    var worm = game.worms[data.props.pseudo]
-    worm.state.active = false
-    worm.canvas.remove()
+socket.on('userDisconnected', function(pseudo) {
+  if (pseudo && pseudo !== null) {
+    console.log(pseudo, "disconnected")
+    $(`#li_${pseudo}`).html(`<li id=li_${pseudo}>`+ pseudo +'<span class="red_text"> is disconnected <span> </li>')
+    var worm = game.worms[pseudo]
+    if (worm) {
+      worm.state.active = false
+      worm.canvas.remove()
+    }
   }
 })
 
@@ -436,7 +442,6 @@ socket.on('collision', function(data) {
   shooted.state.life = data.shooted.state.life
   console.log(shooted.props.pseudo + " life " + shooted.state.life )
 })
-
 
 ///////////////// Helpers
 function setBackground() {
