@@ -115,7 +115,7 @@ io.on('connection', function (socket) {
 
                 if (shooted.state.life <= 0) {
                   shooted.state.active = false
-
+                  io.emit('gameOver', shooted.props.pseudo)
                   // update the shooted status
                   User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
                     if (err) {console.log(err.name + ': ' + err.message) }
@@ -194,6 +194,7 @@ io.on('connection', function (socket) {
         player.save()
       });
     }
+    delete worms[socket.id]
   })
 
 });

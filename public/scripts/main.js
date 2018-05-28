@@ -223,7 +223,7 @@ $(document).ready(function() {
   socket.on('allActivePlayers', function(players) {
     $('ul.players').html('')
     players.forEach(function(player) {
-      $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
+      $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
       game.players[player.pseudo] = player
     })
   })
@@ -405,19 +405,7 @@ var gameLoop = function (timestamp) {
 
 /////////////////////// Sockets
 socket.on('newPlayerToAll', function(player){
-  $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected <span> </li>')
-})
-
-socket.on('userDisconnected', function(pseudo) {
-  if (pseudo && pseudo !== null) {
-    console.log(pseudo, "disconnected")
-    $(`#li_${pseudo}`).html(`<li id=li_${pseudo}>`+ pseudo +'<span class="red_text"> is disconnected <span> </li>')
-    var worm = game.worms[pseudo]
-    if (worm) {
-      worm.state.active = false
-      worm.canvas.remove()
-    }
-  }
+  $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
 })
 
 socket.on('allActiveWorms', function(worms) {
@@ -441,6 +429,32 @@ socket.on('collision', function(data) {
   var shooted = game.worms[data.shooted.props.pseudo]
   shooted.state.life = data.shooted.state.life
   console.log(shooted.props.pseudo + " life " + shooted.state.life )
+})
+
+socket.on('userDisconnected', function(pseudo) {
+  if (pseudo && pseudo !== null) {
+    console.log(pseudo, "disconnected")
+    $(`#li_${pseudo}`).html(`<li id=li_${pseudo}>`+ pseudo +'<span class="red_text"> is disconnected </span> </li>')
+    var worm = game.worms[pseudo]
+    if (worm) {
+      worm.state.active = false
+      worm.canvas.remove()
+    }
+    delete game.worms[pseudo]
+  }
+})
+
+socket.on('gameOver', function(pseudo) {
+  if (pseudo && pseudo !== null) {
+    console.log(pseudo, "disconnected")
+    var worm = game.worms[pseudo]
+    if (worm) {
+      worm.state.active = false
+      worm.canvas.remove()
+    }
+    $(`#li_${pseudo}`).html(`<li id=li_${pseudo}> <i class="fas fa-skull"></i> `+ pseudo +'<span class="red_text"> Score: '+ worm.state.score  +' </span> </li>')
+    delete game.worms[pseudo]
+  }
 })
 
 ///////////////// Helpers
