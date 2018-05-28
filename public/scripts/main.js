@@ -108,6 +108,9 @@ Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
 Worm.prototype.walk = function(canvas, images) {
   var context =  canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height)
+  context.font = '16px sans-serif'
+  context.fillStyle = 'white'
+  context.fillText(this.props.pseudo, this.state.x + 10, this.state.y - 20)
   if (this.state.events.left && !this.state.events.space) {
     this.state.orientation = 'left';
     if (this.state.iterations.walk === 14) {this.state.x -= 14}
