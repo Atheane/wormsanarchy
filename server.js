@@ -11,6 +11,8 @@ var app = express();
 var server = require('http').Server(app);
 
 var index = require('./routes/index');
+var _ = require('lodash');
+
 
 /// Routing
 app.use('/', index);
@@ -59,10 +61,18 @@ var collision;
 io.on('connection', function (socket) {
   // Fetch all active worms
 
-  // Fetch all active players
+  // Fetch all active players for dashboard
   User.find({active: true}, function(err, players) {
     if (err) {console.log(err.name + ': ' + err.message); }
     socket.emit('allActivePlayers', players);
+  });
+
+  // Fetch all players for high-scores
+  User.find({}, function(err, players) {
+    if (err) {console.log(err.name + ': ' + err.message); }
+    players = _.orderBy(players, ['score'],['desc']); // Use Lodash to sort array by 'name'
+
+    socket.emit('allKnownPlayers', players);
   });
 
   socket.on('newPlayer', function (player) {

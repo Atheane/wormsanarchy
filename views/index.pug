@@ -29,8 +29,14 @@ block content
             input#pseudo(type='text', name='pseudo')
             input#button-form(type='submit' class='btn-primary' value='Go !')
           h3#alert(style='font-size: 16px; font-weight: light; color: red; margin-top: 15px')
-    div(class='name-container')
-      p#white-title-players(class='players') DASHBOARD
-      hr
-      ul(class='players')
+    
+    div(class='dashboard-container')
+      div#high-scores
+        p(class='players white-title') High scores
+        hr
+        ul(class='players')
+      div#dashboard
+        p(class='players white-title') Dashboard
+        hr
+        ul(class='players')
   script(src='scripts/main.js')

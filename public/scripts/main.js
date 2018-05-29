@@ -228,11 +228,21 @@ $(document).ready(function() {
   setBackground()
   game.background = new Background
 
-  /// Fetch all active users
+  /// Fetch all active users to dahsboard
   socket.on('allActivePlayers', function(players) {
-    $('ul.players').html('')
+    $('#dashboard ul.players').html('')
     players.forEach(function(player) {
-      $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
+      $('#dashboard ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
+      game.players[player.pseudo] = player
+    })
+  })
+
+  /// Fetch all known users to high-scores
+  socket.on('allKnownPlayers', function(players) {
+    $('#high-scores ul.players').html('')
+    players.forEach(function(player) {
+      var cl = (player.active) ? "green_class" : "black_text"
+      $('#high-scores ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo + '<span class='+ cl + '> ' + player.score + ' points </span> </li>')
       game.players[player.pseudo] = player
     })
   })
@@ -275,7 +285,7 @@ $(document).ready(function() {
     } else {
       $('.form-container').hide()
       $('.game-container').fadeIn(500)
-      $('ul.players').append(`<li id=li_${game.player.pseudo}>`+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
+      $('#dashboard ul.players').append(`<li id=li_${game.player.pseudo}>`+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
       /// Drawing Background
 
       var worm = new Worm
@@ -414,7 +424,7 @@ var gameLoop = function (timestamp) {
 
 /////////////////////// Sockets
 socket.on('newPlayerToAll', function(player){
-  $('ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
+  $('#dashboard ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
 })
 
 socket.on('allActiveWorms', function(worms) {
