@@ -132,6 +132,9 @@ Worm.prototype.walk = function(canvas, images) {
 Worm.prototype.getHolly = function(canvas, images) {
   var context =  canvas.getContext('2d');
   context.clearRect(0, 0, canvas.width, canvas.height);
+  context.font = '16px sans-serif';
+  context.fillStyle = 'white';
+  context.fillText(this.props.pseudo, this.state.x + 10, this.state.y - 20);
   (this.state.iterations.getHolly < 8) ? this.state.iterations.getHolly += 1 : this.state.iterations.getHolly = 8;
   if (this.state.orientation === 'left') {
     context.drawImage(images.getHollyLeft, 0, images.getHollyLeft.height * this.state.iterations.getHolly/10, images.getHollyLeft.width, images.getHollyLeft.height/10, this.state.x, this.state.y, 60, 60);
@@ -142,8 +145,11 @@ Worm.prototype.getHolly = function(canvas, images) {
 
 Worm.prototype.targetHolly = function(canvas, images) {
   var angle = 0
-  var context =  canvas.getContext('2d')
-  context.clearRect(0, 0, canvas.width, canvas.height)
+  var context =  canvas.getContext('2d');
+  context.clearRect(0, 0, canvas.width, canvas.height);
+  context.font = '16px sans-serif';
+  context.fillStyle = 'white';
+  context.fillText(this.props.pseudo, this.state.x + 10, this.state.y - 20);
   if (this.state.events.space) {
     angle = toDegrees(getAngle(this.state.x, this.state.y, this.state.events.mousePosition.x,  this.state.events.mousePosition.y  ));
     if (angle >= -90 && angle < 110) {
@@ -168,6 +174,9 @@ Worm.prototype.targetHolly = function(canvas, images) {
 Worm.prototype.shoot = function(canvas, images) {
   var context =  canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height)
+  context.font = '16px sans-serif'
+  context.fillStyle = 'white'
+  context.fillText(this.props.pseudo, this.state.x + 10, this.state.y - 20)
   if (this.state.orientation === 'left') {
     context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60)
   } else  {
