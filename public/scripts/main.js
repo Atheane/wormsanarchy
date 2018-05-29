@@ -435,8 +435,10 @@ socket.on('collision', function(data) {
   shooter.state.score = data.shooter.state.score
   $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +'<span class="green_text"> Score: '+ shooter.state.score  +' </span> </li>')
 
-  shooted.state.life = data.shooted.state.life
-  console.log(shooted.props.pseudo + " life " + shooted.state.life )
+  if (shooted) {
+    shooted.state.life = data.shooted.state.life
+    console.log(shooted.props.pseudo + " life " + shooted.state.life)
+  }
 })
 
 socket.on('userDisconnected', function(pseudo) {
@@ -444,8 +446,7 @@ socket.on('userDisconnected', function(pseudo) {
     console.log(pseudo, "disconnected")
     $(`#li_${pseudo}`).html(`<li id=li_${pseudo}>`+ pseudo +'<span class="red_text"> is disconnected </span> </li>')
     var worm = game.worms[pseudo]
-    console.log(worm)
-    if (worm) {
+    if (worm && worm.state.active) {
       worm.state.active = false
       worm.canvas.remove()
     }
@@ -455,7 +456,7 @@ socket.on('userDisconnected', function(pseudo) {
 
 socket.on('gameOver', function(pseudo) {
   if (pseudo && pseudo !== null) {
-    console.log(pseudo, "disconnected")
+    console.log(pseudo, "game over")
     var worm = game.worms[pseudo]
     if (worm) {
       worm.state.active = false

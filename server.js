@@ -114,8 +114,9 @@ io.on('connection', function (socket) {
                 shooted.state.life -= 50
 
                 if (shooted.state.life <= 0) {
-                  shooted.state.active = false
                   io.emit('gameOver', shooted.props.pseudo)
+                  shooted.state.active = false
+
                   // update the shooted status
                   User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
                     if (err) {console.log(err.name + ': ' + err.message) }
