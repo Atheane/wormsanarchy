@@ -424,9 +424,8 @@ socket.on('collision', function(data) {
   var shooter = game.worms[data.shooter.props.pseudo]
   var shooted = game.worms[data.shooted.props.pseudo]
   shooter.state.score = data.shooter.state.score
-  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +`<span class="green_text"> ${shooter.state.score} <span> </li>`)
+  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +'<span class="green_text"> Score: '+ shooter.state.score  +' </span> </li>')
 
-  var shooted = game.worms[data.shooted.props.pseudo]
   shooted.state.life = data.shooted.state.life
   console.log(shooted.props.pseudo + " life " + shooted.state.life )
 })
@@ -436,6 +435,7 @@ socket.on('userDisconnected', function(pseudo) {
     console.log(pseudo, "disconnected")
     $(`#li_${pseudo}`).html(`<li id=li_${pseudo}>`+ pseudo +'<span class="red_text"> is disconnected </span> </li>')
     var worm = game.worms[pseudo]
+    console.log(worm)
     if (worm) {
       worm.state.active = false
       worm.canvas.remove()
