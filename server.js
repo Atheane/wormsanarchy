@@ -120,7 +120,6 @@ io.on('connection', function (socket) {
                   // update the shooted status
                   User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
                     if (err) {console.log(err.name + ': ' + err.message) }
-                    console.log(user, " status updated")
                     user.active = shooted.state.active
                     user.save()
                   })
@@ -136,7 +135,6 @@ io.on('connection', function (socket) {
                 // update the shooter score
                 User.findOne({pseudo: shooter.props.pseudo}, function (err, user) {
                   if (err) {console.log(err.name + ': ' + err.message) }
-                  console.log(user, " score updated")
                   user.score = shooter.state.score
                   user.save()
                 })
