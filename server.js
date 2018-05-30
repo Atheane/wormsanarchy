@@ -6,14 +6,18 @@ var path = require('path');
 var mongoose = require('mongoose');
 var favicon = require('serve-favicon');
 var router = express.Router();
+var helmet = require('helmet');
+
 
 var app = express();
+
 var server = require('http').Server(app);
 
 var index = require('./routes/index');
 var _ = require('lodash');
 
 
+app.use(helmet());
 /// Routing
 app.use('/', index);
 
