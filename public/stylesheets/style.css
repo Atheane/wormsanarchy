@@ -25,15 +25,14 @@ h1#index {
   justify-content: center;
   width: 1462px;
   height: 520px;
+  flex-flow: row wrap;
 }
 
 .explanations-container {
-  position: absolute;
-  top: 750px;
   width: 1024px;
-  left: 21%;
   text-align: center;
   border: 1px solid black;
+  margin-left: -20%;
 }
 
 .game-container {
