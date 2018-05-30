@@ -388,7 +388,7 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       var diffTime = Math.floor((Date.now() - worm.props.tsp) / 1000)
       $('#li_'+worm.props.pseudo).html(`<li id=li_${worm.props.pseudo}> <img src="images/worm_${worm.props.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `
-        +worm.props.pseudo +'<span class="green_text"> ' + diffTime + ' s. </span> </li>')
+        +worm.props.pseudo +'<span class="green_text"> ' + diffTime + ' s., Score :'+ worm.state.score+' </span> </li>')
       if (worm && worm.state.active) {
         if (worm.state.x < 20) {
           worm.state.x = 20
