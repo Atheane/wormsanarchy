@@ -20,11 +20,20 @@ h1#index {
 
 .game {
   position: relative;
-  margin: 32px auto;
+  margin: 100px auto;
   display:flex;
   justify-content: center;
   width: 1462px;
   height: 520px;
+}
+
+.explanations-container {
+  position: absolute;
+  top: 750px;
+  width: 1024px;
+  left: 21%;
+  text-align: center;
+  border: 1px solid black;
 }
 
 .game-container {
@@ -54,6 +63,8 @@ h1#index {
   height: 100%;
 }
 
+
+
 #dashboard {
   width : 100%;
   height: 46%;
@@ -72,11 +83,6 @@ h1#index {
   background-color: rgba(91, 135, 247, 0.5);
   border-radius: 5px;
   overflow: scroll;
-}
-
-#explications {
-  margin: -49px auto;
-  text-align: center;
 }
 
 .players {
