@@ -74,6 +74,11 @@ h1#index {
   overflow: scroll;
 }
 
+#explications {
+  margin: -49px auto;
+  text-align: center;
+}
+
 .players {
   color: white;
   font-weight: bold;
