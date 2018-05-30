@@ -36,7 +36,7 @@ app.use('/lib/jquery', express.static(path.join(__dirname, '/node_modules/jquery
 app.use('/lib/bootstrap', express.static(path.join(__dirname, '/node_modules/bootstrap/dist')));
 
 /// Set up Mongoose
-var mongoDB = 'mongodb://nodeApp:56Lolatipo@ds141720.mlab.com:41720/wormsanarchy';
+var mongoDB = process.env.MONGODB_URI || 'mongodb://nodeApp:56Lolatipo@ds141720.mlab.com:41720/wormsanarchy';
 
 mongoose.connect(mongoDB);
 // Get Mongoose to use the global promise library
