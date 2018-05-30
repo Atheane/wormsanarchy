@@ -212,8 +212,8 @@ var keyPressed = {
   mousePosition: {x: undefined, y: undefined}
 }
 
-var socket = io.connect('http://localhost:3000')
-// var socket = io.connect('http://18.196.138.28:3000');
+// var socket = io.connect('http://localhost:3000')
+var socket = io.connect('https://desolate-plateau-61253.herokuapp.com:3000');
 console.log('Client connected to socket')
 
 var game = {}
