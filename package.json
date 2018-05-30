@@ -2,7 +2,7 @@
   "name": "wormsanarchy",
   "version": "1.0.0",
   "engines": {
-    "node": "10.1.0"
+    "node": "8.9.4"
   },
   "private": true,
   "description": "multiplayer worms armageddon in JS",
