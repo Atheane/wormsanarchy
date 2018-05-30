@@ -389,31 +389,36 @@ var gameLoop = function (timestamp) {
       var diffTime = Math.floor((Date.now() - worm.props.tsp) / 1000)
       $('#li_'+worm.props.pseudo).html(worm.props.pseudo +'<span class="green_text"> connected ' + diffTime + ' s. </span> </li>')
       if (worm && worm.state.active) {
-        worm.walk(worm.canvas, imageContainer)
-        if (worm.state.events.space) {
-          worm.getHolly(worm.canvas, imageContainer);
-          if (worm.state.events.mousePosition.x) {
-            worm.targetHolly(worm.canvas, imageContainer);
-            if (worm.state.events.click) {
-              worm.shoot(worm.canvas, imageContainer);
+        if (worm.state.x < 20) {
+          worm.state.x = 20
+        } else if (worm.state.x > game.width - 80) {
+          worm.state.x = game.width - 80
+        } else {
+          worm.walk(worm.canvas, imageContainer)
+          if (worm.state.events.space) {
+            worm.getHolly(worm.canvas, imageContainer);
+            if (worm.state.events.mousePosition.x) {
+              worm.targetHolly(worm.canvas, imageContainer);
+              if (worm.state.events.click) {
+                worm.shoot(worm.canvas, imageContainer);
+              }
             }
+          } else  {
+            worm.state.iterations.getHolly = 0;
+            worm.state.iterations.targetHolly = 0;
+            worm.state.events.mousePosition.x = undefined;
+            worm.state.events.click = false;
           }
-        } else  {
-          worm.state.iterations.getHolly = 0;
-          worm.state.iterations.targetHolly = 0;
-          worm.state.events.mousePosition.x = undefined;
-          worm.state.events.click = false;
-        }
-        if (worm.weapon) {
-          if (worm.weapon.state.y > worm.state.y + 20) {
-            worm.weapon.active = false
-          }
-          if (worm.weapon.active) {
-            worm.weapon.draw(game.weaponCanvas, imageContainer)
+          if (worm.weapon) {
+            if (worm.weapon.state.y > worm.state.y + 20) {
+              worm.weapon.active = false
+            }
+            if (worm.weapon.active) {
+              worm.weapon.draw(game.weaponCanvas, imageContainer)
+            }
           }
         }
       }
-      // console.log(worm)
     });
     game.start1 = timestamp
   }
