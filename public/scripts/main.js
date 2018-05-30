@@ -106,25 +106,27 @@ Worm.prototype.createCanvas = function(siblingCanvas, width, height) {
 }
 
 Worm.prototype.walk = function(canvas, images) {
-  var context =  canvas.getContext('2d')
-  context.clearRect(0, 0, canvas.width, canvas.height)
-  context.font = '16px sans-serif'
-  context.fillStyle = 'white'
-  context.fillText(this.props.pseudo, this.state.x + 10, this.state.y - 20)
-  if (this.state.events.left && !this.state.events.space) {
-    this.state.orientation = 'left';
-    if (this.state.iterations.walk === 14) {this.state.x -= 14}
-  } else if (this.state.events.right && !this.state.events.space) {
-    this.state.orientation = 'right';
-    if (this.state.iterations.walk  === 14) {this.state.x += 14}
-  }
-  if (this.state.events.left || this.state.events.right) {
-    (this.state.iterations.walk === 14) ? this.state.iterations.walk = 0 : this.state.iterations.walk += 1
-  }
-  if (this.state.orientation === 'left') {
-    context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60)
-  } else  {
-    context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60)
+  if (canvas !== null) {
+    var context =  canvas.getContext('2d')
+    context.clearRect(0, 0, canvas.width, canvas.height)
+    context.font = '16px sans-serif'
+    context.fillStyle = 'white'
+    context.fillText(this.props.pseudo, this.state.x + 10, this.state.y - 20)
+    if (this.state.events.left && !this.state.events.space) {
+      this.state.orientation = 'left';
+      if (this.state.iterations.walk === 14) {this.state.x -= 14}
+    } else if (this.state.events.right && !this.state.events.space) {
+      this.state.orientation = 'right';
+      if (this.state.iterations.walk  === 14) {this.state.x += 14}
+    }
+    if (this.state.events.left || this.state.events.right) {
+      (this.state.iterations.walk === 14) ? this.state.iterations.walk = 0 : this.state.iterations.walk += 1
+    }
+    if (this.state.orientation === 'left') {
+      context.drawImage(images.walkLeft, 0, images.walkLeft.height * this.state.iterations.walk/15, images.walkLeft.width, images.walkLeft.height/15, this.state.x, this.state.y, 60, 60)
+    } else  {
+      context.drawImage(images.walkRight, 0, images.walkRight.height * this.state.iterations.walk/15, images.walkRight.width, images.walkRight.height/15, this.state.x, this.state.y, 60, 60)
+    }
   }
 }
 
