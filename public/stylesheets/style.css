@@ -118,8 +118,8 @@ hr {
 
 .soldier{background-image:url(../images/worm_soldier.jpeg); width:225px; height:225px;}
 .tarzan{background-image:url(../images/worm_tarzan.jpeg);}
-.dumb{background-image:url(../images/dumb_worm.jpeg);}
-.cool{background-image:url(../images/cool_worm.jpeg);}
+.dumb{background-image:url(../images/worm_dumb.jpeg);}
+.cool{background-image:url(../images/worm_cool.jpeg);}
 
 .avatar-selector input:active +.avatar-card{opacity: .9;}
 .avatar-selector input:checked +.avatar-card{

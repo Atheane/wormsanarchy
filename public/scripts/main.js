@@ -232,7 +232,8 @@ $(document).ready(function() {
   socket.on('allActivePlayers', function(players) {
     $('#dashboard ul.players').html('')
     players.forEach(function(player) {
-      $('#dashboard ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
+      $('#dashboard ul.players').append(`<li id=li_${player.pseudo}> <img src="images/worm_${player.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `
+        + player.pseudo +'<span class="green_text"> is connected </span> </li>')
       game.players[player.pseudo] = player
     })
   })
@@ -242,7 +243,7 @@ $(document).ready(function() {
     $('#high-scores ul.players').html('')
     players.forEach(function(player) {
       if (!player.active) {
-        $('#high-scores ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo + '<span class=black_text> ' + player.score + ' points </span> </li>')
+        $('#high-scores ul.players').append(`<li id=li_${player.pseudo}> `+ player.pseudo + '<span class=black_text> ' + player.score + ' points </span> </li>')
       }
     })
   })
@@ -285,13 +286,14 @@ $(document).ready(function() {
     } else {
       $('.form-container').hide()
       $('.game-container').fadeIn(500)
-      $('#dashboard ul.players').append(`<li id=li_${game.player.pseudo}>`+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
+      $('#dashboard ul.players').append(`<li id=li_${game.player.pseudo}> <img src="images/worm_${game.player.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `+ game.player.pseudo +'<span class="green_text"> is connected <span> </li>')
       /// Drawing Background
 
       var worm = new Worm
       var props = {
         pseudo: game.player.pseudo,
-        tsp: game.player.tsp
+        tsp: game.player.tsp,
+        avatar: game.player.avatar
       }
       var state = { x: Math.floor(Math.random() * (game.width - 150 + 1)) + 100,
         y: Math.ceil(game.height*3.9/5),
@@ -387,7 +389,8 @@ var gameLoop = function (timestamp) {
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
       var diffTime = Math.floor((Date.now() - worm.props.tsp) / 1000)
-      $('#li_'+worm.props.pseudo).html(worm.props.pseudo +'<span class="green_text"> connected ' + diffTime + ' s. </span> </li>')
+      $('#li_'+worm.props.pseudo).html(`<li id=li_${worm.props.pseudo}> <img src="images/worm_${worm.props.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `
+        +worm.props.pseudo +'<span class="green_text"> ' + diffTime + ' s. </span> </li>')
       if (worm && worm.state.active) {
         if (worm.state.x < 20) {
           worm.state.x = 20
@@ -432,7 +435,7 @@ var gameLoop = function (timestamp) {
 
 /////////////////////// Sockets
 socket.on('newPlayerToAll', function(player){
-  $('#dashboard ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo +'<span class="green_text"> is connected </span> </li>')
+  $('#dashboard ul.players').append(`<li id=li_${player.pseudo}> <img src="images/worm_${player.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `+ player.pseudo +'<span class="green_text"> </span> </li>')
 })
 
 socket.on('allActiveWorms', function(worms) {
@@ -451,7 +454,7 @@ socket.on('collision', function(data) {
   var shooter = game.worms[data.shooter.props.pseudo]
   var shooted = game.worms[data.shooted.props.pseudo]
   shooter.state.score = data.shooter.state.score
-  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}>`+ shooter.props.pseudo +'<span class="green_text"> Score: '+ shooter.state.score  +' </span> </li>')
+  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${player.pseudo}> <img src="images/worm_${player.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `+ shooter.props.pseudo +'<span class="green_text"> Score: '+ shooter.state.score  +' </span> </li>')
 
   if (shooted) {
     shooted.state.life = data.shooted.state.life
