@@ -194,7 +194,6 @@ Worm.prototype.shoot = function(canvas, images) {
 }
 
 Weapon.prototype.draw = function(canvas, images) {
-  // console.log('weapon draw is called')
   var context =  canvas.getContext('2d')
   context.clearRect(0, 0, canvas.width, canvas.height)
   context.drawImage(images.shoot, 0, 0, images.shoot.width, images.shoot.height, this.state.x, this.state.y, 38, 38)
@@ -305,7 +304,6 @@ $(document).ready(function() {
         active: true,
       }
       worm.init(props, state)
-      // console.log("compute ratio x and Y")
       socket.emit('createWorm', worm)
 
       setBackground()
