@@ -388,7 +388,7 @@ var gameLoop = function (timestamp) {
     Object.values(game.worms).forEach(function(worm){
       var diffTime = Math.floor((Date.now() - worm.props.tsp) / 1000)
       $('#li_'+worm.props.pseudo).html(`<li id=li_${worm.props.pseudo}> <img src="images/worm_${worm.props.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `
-        +worm.props.pseudo +'<span class="green_text"> ' + diffTime + ' s., Score :'+ worm.state.score+' </span> </li>')
+        +worm.props.pseudo +'<span class="green_text"> ' + diffTime + ' s., Score : '+ worm.state.score+' </span> </li>')
       if (worm && worm.state.active) {
         if (worm.state.x < 20) {
           worm.state.x = 20
@@ -452,7 +452,7 @@ socket.on('collision', function(data) {
   var shooter = game.worms[data.shooter.props.pseudo]
   var shooted = game.worms[data.shooted.props.pseudo]
   shooter.state.score = data.shooter.state.score
-  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${player.pseudo}> <img src="images/worm_${player.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `+ shooter.props.pseudo +'<span class="green_text"> Score: '+ shooter.state.score  +' </span> </li>')
+  $(`#li_${shooter.props.pseudo}`).html(`<li id=li_${shooter.props.pseudo}> <img src="images/worm_${shooter.props.avatar}.jpeg" height="20px" width="20px" style="border-radius: 50%" />    `+ shooter.props.pseudo +'<span class="green_text"> Score: '+ shooter.state.score  +' </span> </li>')
 
   if (shooted) {
     shooted.state.life = data.shooted.state.life
