@@ -241,9 +241,9 @@ $(document).ready(function() {
   socket.on('allKnownPlayers', function(players) {
     $('#high-scores ul.players').html('')
     players.forEach(function(player) {
-      var cl = (player.active) ? "green_class" : "black_text"
-      $('#high-scores ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo + '<span class='+ cl + '> ' + player.score + ' points </span> </li>')
-      game.players[player.pseudo] = player
+      if (!player.active) {
+        $('#high-scores ul.players').append(`<li id=li_${player.pseudo}>`+ player.pseudo + '<span class=black_text> ' + player.score + ' points </span> </li>')
+      }
     })
   })
 
@@ -290,7 +290,8 @@ $(document).ready(function() {
 
       var worm = new Worm
       var props = {
-        pseudo: game.player.pseudo
+        pseudo: game.player.pseudo,
+        tsp: game.player.tsp
       }
       var state = { x: Math.floor(Math.random() * (game.width - 150 + 1)) + 100,
         y: Math.ceil(game.height*3.9/5),
@@ -385,6 +386,8 @@ var gameLoop = function (timestamp) {
   if (!game.start2) { game.start2 = timestamp }
   if (timestamp - game.start1 >= 50) {
     Object.values(game.worms).forEach(function(worm){
+      var diffTime = Math.floor((Date.now() - worm.props.tsp) / 1000)
+      $('#li_'+worm.props.pseudo).html(worm.props.pseudo +'<span class="green_text"> connected ' + diffTime + ' s. </span> </li>')
       if (worm && worm.state.active) {
         worm.walk(worm.canvas, imageContainer)
         if (worm.state.events.space) {
@@ -453,7 +456,6 @@ socket.on('collision', function(data) {
 
 socket.on('userDisconnected', function(pseudo) {
   if (pseudo && pseudo !== null) {
-    console.log(pseudo, "disconnected")
     $(`#li_${pseudo}`).html(`<li id=li_${pseudo}>`+ pseudo +'<span class="red_text"> is disconnected </span> </li>')
     var worm = game.worms[pseudo]
     if (worm && worm.state.active) {
