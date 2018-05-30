@@ -213,7 +213,7 @@ var keyPressed = {
 }
 
 // var socket = io.connect('http://localhost:3000')
-var socket = io.connect('https://desolate-plateau-61253.herokuapp.com:3000');
+var socket = io.connect(window.location.hostname);
 console.log('Client connected to socket')
 
 var game = {}
