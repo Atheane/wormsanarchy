@@ -11,6 +11,8 @@ var app = express();
 var server = require('http').Server(app);
 
 var index = require('./routes/index');
+var _ = require('lodash');
+
 
 /// Routing
 app.use('/', index);
@@ -53,15 +55,24 @@ var worms = {};
 var keyPressed;
 var InitY;
 
+var collision;
 
 
 io.on('connection', function (socket) {
   // Fetch all active worms
 
-  // Fetch all active players
-  User.find({active: true}, function(err, list_users) {
+  // Fetch all active players for dashboard
+  User.find({active: true}, function(err, players) {
     if (err) {console.log(err.name + ': ' + err.message); }
-    socket.emit('allActivePlayers', list_users);
+    socket.emit('allActivePlayers', players);
+  });
+
+  // Fetch all players for high-scores
+  User.find({}, function(err, players) {
+    if (err) {console.log(err.name + ': ' + err.message); }
+    players = _.orderBy(players, ['score'],['desc']); // Use Lodash to sort array by 'name'
+
+    socket.emit('allKnownPlayers', players);
   });
 
   socket.on('newPlayer', function (player) {
@@ -99,77 +110,103 @@ io.on('connection', function (socket) {
     socket.broadcast.emit('myWormToAll', worm);
   });
 
+  socket.on('updateWorm', function(shooter) {
+    if (shooter) {
+      worms[socket.id] = shooter;
+      if (shooter.weapon) {
+        if (shooter.weapon.active) {
+          Object.values(worms).forEach( function(shooted) {
+            if (!Object.is(shooter, shooted) && collisionDetection(shooter.weapon.state, shooted.state)) {
+              shooter.weapon.active = false
+              if (collision && (Date.now() - collision) > 500) {
+                console.log("collision")
+                shooter.state.score += 50
+                shooted.state.life -= 50
 
-  socket.on('updateWorm', function(worm) {
-    worms[socket.id] = worm;
-    socket.broadcast.emit('updateWormToAll', worm);
-  });
+                if (shooted.state.life <= 0) {
+                  io.emit('gameOver', shooted.props.pseudo)
+                  shooted.state.active = false
 
-  function search(pseudo, worms){
-    for (var i=0; i < worms.length; i++) {
-      if (worms[i].props.pseudo === pseudo) {
-        return worms[i];
+                  // update the shooted status
+                  User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
+                    if (err) {console.log(err.name + ': ' + err.message) }
+                    user.active = shooted.state.active
+                    user.save()
+                  })
+
+                  shooter.state.score += 100
+                }
+
+                io.emit('collision', {
+                  shooter: shooter,
+                  shooted: shooted
+                })
+
+                // update the shooter score
+                User.findOne({pseudo: shooter.props.pseudo}, function (err, user) {
+                  if (err) {console.log(err.name + ': ' + err.message) }
+                  user.score = shooter.state.score
+                  user.save()
+                })
+
+              }
+             collision = Date.now()
+            }
+          })
+        }
       }
+      socket.broadcast.emit('updateWormToAll', shooter)
     }
+  })
+
+  function collisionDetection (w1, w2) {
+    return (w1.x < w2.x + 80 &&  w1.x + 80 > w2.x &&
+     w1.y < w2.y + 80 &&  80 + w1.y > w2.y)
   }
 
-  socket.on('collision', function(data) {
-    console.log("collision")
-    var shooter = search(data.shooter, Object.values(worms))
-    var shooted = search(data.shooted, Object.values(worms))
-
-    shooter.state.score += 50
-    shooted.state.life -= 50
-
-    if (shooted.state.life <= 0) {
-      shooted.state.active = false
-      shooter.state.score += 100
-    }
-
-    socket.broadcast.emit('updateScoreToAll', {
-      shooter: shooter,
-      shooted: shooted
-    })
-
-    // update the shooter score
-    User.findOne({pseudo: shooter.props.pseudo}, function (err, user) {
-      if (err) {console.log(err.name + ': ' + err.message); }
-      console.log(user, " score updated")
-      user.score = shooter.state.score
-      user.save()
-    });
-
-    // update the shooted status
-    User.findOne({pseudo: shooted.props.pseudo}, function (err, user) {
-      if (err) {console.log(err.name + ': ' + err.message); }
-      console.log(user, " status updated")
-      user.active = shooted.state.active
-      user.save()
-    });
-
-  });
+  if (!Object.is) {
+    Object.is = function(x, y) {
+      // SameValue algorithm
+      if (x === y) { // Steps 1-5, 7-10
+        // Steps 6.b-6.e: +0 != -0
+        return x !== 0 || 1 / x === 1 / y;
+      } else {
+       // Step 6.a: NaN == NaN
+       return x !== x && y !== y;
+      }
+    };
+  }
 
   socket.on('disconnect', function() {
      console.log('Got disconnect!');
      var player = worms[socket.id];
 
-     if (player) {
+     if (player && player !== null) {
+       io.emit('userDisconnected',  player.props.pseudo )
        User.findOne({pseudo: player.props.pseudo}, function (err, player) {
          if (err) {console.log(err.name + ': ' + err.message); }
-         console.log(player, " status updated")
          player.active = false
          player.save()
        });
      }
 
-     socket.emit('user disconnected',  worms[socket.id] );
-     socket.broadcast.emit('user disconnected',  worms[socket.id] );
-     delete worms[socket.id];
+     delete worms[socket.id]
   });
 
+  socket.on('reload',function(){
+    var player = worms[socket.id];
+    if (player && player !== null) {
+      io.emit('userDisconnected',  player.props.pseudo )
+      User.findOne({pseudo: player.props.pseudo}, function (err, player) {
+        if (err) {console.log(err.name + ': ' + err.message); }
+        player.active = false
+        player.save()
+      });
+    }
+    delete worms[socket.id]
+  })
+
 });
-
-
 
 /// Handle 404
 app.use(function(req, res) {
