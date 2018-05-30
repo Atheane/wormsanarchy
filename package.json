@@ -1,6 +1,10 @@
 {
   "name": "wormsanarchy",
   "version": "1.0.0",
+  "engines": {
+    "node": "10.1.0"
+  },
+  "private": true,
   "description": "multiplayer worms armageddon in JS",
   "main": "server.js",
   "scripts": {
